@@ -13,6 +13,42 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
 
+// ─── Socket helpers ──────────────────────────────────────────────────────────
+function emitToAdmins(event, payload) {
+  try {
+    const { getIO } = require('../config/socket');
+    const io = getIO();
+    if (!io) return;
+    io.to('role:admin').emit(event, payload);
+    io.to('role:superadmin').emit(event, payload);
+  } catch (err) {
+    console.error('[Socket] emitToAdmins error:', err.message);
+  }
+}
+
+function emitToUsers(userIds, event, payload) {
+  try {
+    const { getIO } = require('../config/socket');
+    const io = getIO();
+    if (!io) return;
+    for (const uid of userIds) {
+      io.to(`user:${uid}`).emit(event, payload);
+    }
+  } catch (err) {
+    console.error('[Socket] emitToUsers error:', err.message);
+  }
+}
+
+function emitToPublicBoard(event, payload) {
+  try {
+    const { getIO } = require('../config/socket');
+    const io = getIO();
+    if (io) io.to('public_board').emit(event, payload);
+  } catch (err) {
+    console.error('[Socket] emitToPublicBoard error:', err.message);
+  }
+}
+
 // POST /api/uploads/request-permission — Teknisi requests upload permission
 router.post('/request-permission', auth, roleGuard('teknisi'), async (req, res, next) => {
   try {
@@ -39,6 +75,10 @@ router.post('/request-permission', auth, roleGuard('teknisi'), async (req, res, 
       userId: req.user.id, action: 'create', entityType: 'upload_permission', entityId: perm.id,
       description: `Minta izin upload untuk ${doc?.document_number}`, ipAddress: req.ip,
     });
+
+    // Real-time: refresh admin list + public board (status changed to menunggu_izin)
+    emitToAdmins('document:updated', { documentId: Number(document_id) });
+    emitToPublicBoard('board:updated', { documentId: Number(document_id) });
 
     res.status(201).json(perm);
   } catch (err) { next(err); }
@@ -76,6 +116,11 @@ router.patch('/permissions/:id', auth, roleGuard('admin', 'superadmin'), async (
       description: `${status === 'approved' ? 'Approve' : 'Reject'} upload ${perm.document.document_number}`,
       ipAddress: req.ip,
     });
+
+    // Real-time: refresh admin list, requesting teknisi, and public board
+    emitToAdmins('document:updated', { documentId: perm.document_id });
+    emitToUsers([perm.requested_by], 'document:updated', { documentId: perm.document_id });
+    emitToPublicBoard('board:updated', { documentId: perm.document_id });
 
     res.json(perm);
   } catch (err) { next(err); }
@@ -163,6 +208,7 @@ router.post('/files', auth, roleGuard('teknisi', 'admin', 'superadmin'), upload.
         io.to('public_board').emit('board:updated', { documentId: doc.id });
         doc.assignees.forEach(a => io.to(`user:${a.user_id}`).emit('document:updated', { documentId: doc.id }));
       }
+      emitToAdmins('document:updated', { documentId: doc.id });
     }
 
     await logActivity({
