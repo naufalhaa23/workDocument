@@ -350,7 +350,7 @@ router.patch('/:id/status', auth, roleGuard('admin', 'superadmin'), async (req, 
 
     await logActivity({
       userId: req.user.id, action: 'update', entityType: 'document', entityId: doc.id,
-      description: `Mengubah status ${doc.document_number} → ${status}`, ipAddress: req.ip,
+      description: `Mengubah status ${doc.document_number} → ${STATUS_LABEL[status] || status}`, ipAddress: req.ip,
     });
 
     const assigneeIds = currentDoc.assignees.map((a) => a.user_id);
