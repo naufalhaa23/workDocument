@@ -11,12 +11,13 @@ app.use(cors({
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    // Allow any localhost port, ngrok domains, and local network IPs
+    // Allow any localhost port, ngrok domains, local network IPs, and VPS
     if (
-      origin.startsWith('http://localhost:') || 
+      origin.startsWith('http://localhost:') ||
       origin.startsWith('http://127.0.0.1:') ||
       origin.startsWith('http://192.168.') ||
-      origin.includes('ngrok')
+      origin.includes('ngrok') ||
+      origin === 'http://103.150.195.133'
     ) {
       return callback(null, true);
     }
