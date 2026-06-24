@@ -82,31 +82,34 @@ router.put('/:id/telegram', auth, async (req, res, next) => {
 // PUT /api/users/:id/password
 router.put('/:id/password', auth, async (req, res, next) => {
   try {
-    if (req.user.id !== Number(req.params.id) && !['admin', 'superadmin'].includes(req.user.role)) {
+    const isAdmin = ['admin', 'superadmin'].includes(req.user.role);
+    const isSelf = req.user.id === Number(req.params.id);
+
+    if (!isSelf && !isAdmin) {
       return res.status(403).json({ message: 'Akses ditolak' });
     }
 
     const { currentPassword, newPassword } = req.body;
-    
-    // Get current user to verify old password
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ message: 'Password baru minimal 6 karakter' });
+    }
+
     const user = await prisma.user.findUnique({ where: { id: Number(req.params.id) } });
     if (!user) return res.status(404).json({ message: 'User tidak ditemukan' });
 
-    // Verify current password
-    const valid = await bcrypt.compare(currentPassword, user.password_hash);
-    if (!valid) return res.status(401).json({ message: 'Password saat ini salah' });
+    // Admin resetting another user's password doesn't need current password
+    if (isSelf && !isAdmin) {
+      if (!currentPassword) return res.status(400).json({ message: 'Password saat ini wajib diisi' });
+      const valid = await bcrypt.compare(currentPassword, user.password_hash);
+      if (!valid) return res.status(401).json({ message: 'Password saat ini salah' });
+    }
 
-    // Hash new password
     const password_hash = await bcrypt.hash(newPassword, 10);
-    
-    await prisma.user.update({
-      where: { id: Number(req.params.id) },
-      data: { password_hash }
-    });
+    await prisma.user.update({ where: { id: Number(req.params.id) }, data: { password_hash } });
 
     await logActivity({
       userId: req.user.id, action: 'update', entityType: 'user', entityId: user.id,
-      description: `Update password`, ipAddress: req.ip,
+      description: `Reset password user ${user.username}`, ipAddress: req.ip,
     });
 
     res.json({ message: 'Password berhasil diubah' });

@@ -7,7 +7,7 @@ import {
 import { DataTable } from 'mantine-datatable';
 import {
   IconPlus, IconSearch, IconDotsVertical,
-  IconTrash, IconUser, IconBrandTelegram, IconEdit
+  IconTrash, IconUser, IconBrandTelegram, IconEdit, IconLock
 } from '@tabler/icons-react';
 import { modals } from '@mantine/modals';
 import { api } from '../../lib/axios';
@@ -38,6 +38,13 @@ export default function ManajemenUser() {
   const [editRole, setEditRole] = useState<string | null>(null);
   const [editTelegramChatId, setEditTelegramChatId] = useState('');
   const [editing, setEditing] = useState(false);
+
+  // Form Ubah Password
+  const [pwModalOpened, setPwModalOpened] = useState(false);
+  const [pwUser, setPwUser] = useState<any>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [changingPw, setChangingPw] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -104,6 +111,35 @@ export default function ManajemenUser() {
       notifications.show({ title: 'Error', message: err.response?.data?.message || 'Gagal memperbarui user', color: 'red' });
     } finally {
       setEditing(false);
+    }
+  };
+
+  const openPwModal = (user: any) => {
+    setPwUser(user);
+    setNewPassword('');
+    setConfirmPassword('');
+    setPwModalOpened(true);
+  };
+
+  const handleChangePassword = async () => {
+    if (!newPassword || !confirmPassword) {
+      return notifications.show({ title: 'Peringatan', message: 'Semua field wajib diisi', color: 'orange' });
+    }
+    if (newPassword !== confirmPassword) {
+      return notifications.show({ title: 'Peringatan', message: 'Password tidak cocok', color: 'orange' });
+    }
+    if (newPassword.length < 6) {
+      return notifications.show({ title: 'Peringatan', message: 'Password minimal 6 karakter', color: 'orange' });
+    }
+    setChangingPw(true);
+    try {
+      await api.put(`/users/${pwUser.id}/password`, { newPassword });
+      notifications.show({ title: 'Sukses', message: `Password ${pwUser.username} berhasil diubah`, color: 'green' });
+      setPwModalOpened(false);
+    } catch (err: any) {
+      notifications.show({ title: 'Error', message: err.response?.data?.message || 'Gagal mengubah password', color: 'red' });
+    } finally {
+      setChangingPw(false);
     }
   };
 
@@ -190,14 +226,20 @@ export default function ManajemenUser() {
                   <Menu shadow="md" width={180} position="bottom-end">
                     <Menu.Target><ActionIcon variant="subtle" color="gray" size="sm"><IconDotsVertical size={16} /></ActionIcon></Menu.Target>
                     <Menu.Dropdown>
-                      <Menu.Item 
-                        leftSection={<IconEdit size={14} />} 
+                      <Menu.Item
+                        leftSection={<IconEdit size={14} />}
                         onClick={() => openEditModal(r)}
                       >
                         Edit
                       </Menu.Item>
-                      <Menu.Item 
-                        leftSection={<IconTrash size={14} />} 
+                      <Menu.Item
+                        leftSection={<IconLock size={14} />}
+                        onClick={() => openPwModal(r)}
+                      >
+                        Ubah Password
+                      </Menu.Item>
+                      <Menu.Item
+                        leftSection={<IconTrash size={14} />}
                         color="red"
                         onClick={() => handleDeleteUser(r.id, r.username)}
                       >
@@ -235,6 +277,16 @@ export default function ManajemenUser() {
           <Group justify="flex-end" mt="md">
             <Button variant="default" onClick={() => setEditModalOpened(false)}>Batal</Button>
             <Button onClick={handleEditUser} loading={editing}>✅ Simpan Perubahan</Button>
+          </Group>
+        </Stack>
+      </Modal>
+      <Modal opened={pwModalOpened} onClose={() => setPwModalOpened(false)} title={<Group gap="xs"><IconLock size={20} /><Text fw={600}>Ubah Password — {pwUser?.username}</Text></Group>} size="sm" radius="md">
+        <Stack gap="md">
+          <TextInput label="Password Baru *" placeholder="Minimal 6 karakter" type="password" value={newPassword} onChange={(e) => setNewPassword(e.currentTarget.value)} />
+          <TextInput label="Konfirmasi Password *" placeholder="Ulangi password baru" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.currentTarget.value)} />
+          <Group justify="flex-end" mt="md">
+            <Button variant="default" onClick={() => setPwModalOpened(false)}>Batal</Button>
+            <Button onClick={handleChangePassword} loading={changingPw}>Simpan Password</Button>
           </Group>
         </Stack>
       </Modal>
