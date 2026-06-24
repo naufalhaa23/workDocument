@@ -4,6 +4,16 @@ const { auth, roleGuard } = require('../middleware/auth');
 const { logActivity } = require('../services/activityLog.service');
 const { createNotification } = require('../services/notification.service');
 
+const STATUS_LABEL = {
+  proses: 'Proses',
+  menunggu_izin: 'Menunggu Izin',
+  upload_diizinkan: 'Upload Diizinkan',
+  draft_sn: 'Draft SN',
+  draft_pra: 'Pra TTD',
+  assigned: 'TTD (Assigned)',
+  selesai: 'Selesai',
+};
+
 // ─── Helper: emit a socket event to given user IDs ───────────────────────────
 function emitToUsers(userIds, event, payload) {
   try {
@@ -349,7 +359,7 @@ router.patch('/:id/status', auth, roleGuard('admin', 'superadmin'), async (req, 
       for (const uid of assigneeIds) {
         await createNotification({
           userId: uid, title: 'Status Berubah',
-          message: `Status dokumen ${doc.document_number} diubah menjadi ${status}`,
+          message: `Status dokumen ${doc.document_number} diubah menjadi ${STATUS_LABEL[status] || status}`,
           type: 'system', referenceType: 'document', referenceId: doc.id,
           sendTele: true
         });
