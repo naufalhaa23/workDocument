@@ -39,6 +39,17 @@ function emitToUsers(userIds, event, payload) {
   }
 }
 
+function emitToTeknisi(event, payload) {
+  try {
+    const { getIO } = require('../config/socket');
+    const io = getIO();
+    if (!io) return;
+    io.to('role:teknisi').emit(event, payload);
+  } catch (err) {
+    console.error('[Socket] emitToTeknisi error:', err.message);
+  }
+}
+
 function emitToPublicBoard(event, payload) {
   try {
     const { getIO } = require('../config/socket');
@@ -76,8 +87,9 @@ router.post('/request-permission', auth, roleGuard('teknisi'), async (req, res, 
       description: `Minta izin upload untuk ${doc?.document_number}`, ipAddress: req.ip,
     });
 
-    // Real-time: refresh admin list + public board (status changed to menunggu_izin)
+    // Real-time: refresh admin list, all teknisi views + public board (status → menunggu_izin)
     emitToAdmins('document:updated', { documentId: Number(document_id) });
+    emitToTeknisi('document:updated', { documentId: Number(document_id) });
     emitToPublicBoard('board:updated', { documentId: Number(document_id) });
 
     res.status(201).json(perm);
@@ -117,8 +129,9 @@ router.patch('/permissions/:id', auth, roleGuard('admin', 'superadmin'), async (
       ipAddress: req.ip,
     });
 
-    // Real-time: refresh admin list, requesting teknisi, and public board
+    // Real-time: refresh admin list, all teknisi views, requesting teknisi, and public board
     emitToAdmins('document:updated', { documentId: perm.document_id });
+    emitToTeknisi('document:updated', { documentId: perm.document_id });
     emitToUsers([perm.requested_by], 'document:updated', { documentId: perm.document_id });
     emitToPublicBoard('board:updated', { documentId: perm.document_id });
 
