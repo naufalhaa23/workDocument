@@ -10,6 +10,7 @@ import {
 import { useAuthStore } from '../../stores/authStore';
 import { api } from '../../lib/axios';
 import { useState, useEffect } from 'react';
+import { useSocketConnection } from '../../hooks/useSocket';
 
 const MOBILE_NAV = [
   { icon: IconHome, label: 'Home', to: '/teknisi' },
@@ -23,6 +24,7 @@ export default function TeknisiLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [unreadCount, setUnreadCount] = useState(0);
+  const socket = useSocketConnection();
 
   useEffect(() => {
     const fetchUnread = async () => {
@@ -34,7 +36,7 @@ export default function TeknisiLayout() {
         // ignore
       }
     };
-    
+
     fetchUnread();
     const interval = setInterval(fetchUnread, 30000);
     window.addEventListener('notifications-updated', fetchUnread);
@@ -44,6 +46,16 @@ export default function TeknisiLayout() {
       window.removeEventListener('notifications-updated', fetchUnread);
     };
   }, []);
+
+  // Real-time bell: backend emits notification:count on every new/read/delete
+  useEffect(() => {
+    if (!socket) return;
+    const onCount = (data: any) => {
+      if (typeof data?.unreadCount === 'number') setUnreadCount(data.unreadCount);
+    };
+    socket.on('notification:count', onCount);
+    return () => { socket.off('notification:count', onCount); };
+  }, [socket]);
 
   const handleLogout = () => {
     logout();

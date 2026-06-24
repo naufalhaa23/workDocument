@@ -15,6 +15,7 @@ import {
 import { useAuthStore } from '../../stores/authStore';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/axios';
+import { useSocketConnection } from '../../hooks/useSocket';
 
 interface NavItem {
   icon: typeof IconDashboard;
@@ -54,6 +55,7 @@ export default function AdminLayout() {
 
   const navItems = user?.role === 'superadmin' ? SUPERADMIN_NAV : ADMIN_NAV;
   const [unreadCount, setUnreadCount] = useState(0);
+  const socket = useSocketConnection();
 
   const mobileNavItems = [
     { icon: IconDashboard, label: 'Home', to: user?.role === 'superadmin' ? '/superadmin' : '/admin' },
@@ -73,8 +75,8 @@ export default function AdminLayout() {
       }
     };
     fetchUnread();
-    
-    // Poll every 30s or rely on socket, but simple poll
+
+    // Fallback poll (in case a socket event is missed) + local action refresh
     const interval = setInterval(fetchUnread, 30000);
     window.addEventListener('notifications-updated', fetchUnread);
 
@@ -83,6 +85,16 @@ export default function AdminLayout() {
       window.removeEventListener('notifications-updated', fetchUnread);
     };
   }, []);
+
+  // Real-time bell: backend emits notification:count on every new/read/delete
+  useEffect(() => {
+    if (!socket) return;
+    const onCount = (data: any) => {
+      if (typeof data?.unreadCount === 'number') setUnreadCount(data.unreadCount);
+    };
+    socket.on('notification:count', onCount);
+    return () => { socket.off('notification:count', onCount); };
+  }, [socket]);
 
   const handleLogout = () => {
     logout();
