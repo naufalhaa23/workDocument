@@ -217,6 +217,9 @@ export default function DetailTugas() {
                     {(f.file_size / 1024 / 1024).toFixed(2)} MB
                   </Badge>
                 </Group>
+                {f.notes && (
+                  <Text size="xs" c="dark" mt={6}>📝 Catatan: {f.notes}</Text>
+                )}
               </Card>
             ))}
           </Stack>

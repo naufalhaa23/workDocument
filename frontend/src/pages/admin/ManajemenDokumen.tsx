@@ -139,16 +139,36 @@ export default function ManajemenDokumen() {
     fetchVessels();
   }, []);
 
+  // Keep latest detail-modal state in a ref so the socket listener closure stays stable
+  const detailStateRef = React.useRef<{ open: boolean; id: number | null }>({ open: false, id: null });
+  useEffect(() => {
+    detailStateRef.current = { open: detailModalOpened, id: selectedDoc?.id ?? null };
+  }, [detailModalOpened, selectedDoc]);
+
   useEffect(() => {
     if (!socket) return;
-    const refresh = () => fetchDocuments();
+    const refresh = (data?: any) => {
+      fetchDocuments();
+      // If the detail modal is open for the affected document, refresh its content too
+      const { open, id } = detailStateRef.current;
+      if (open && id && data && Number(data.documentId) === Number(id)) {
+        refreshDetail(id);
+      }
+    };
+    const handleDeleted = (data?: any) => {
+      fetchDocuments();
+      const { open, id } = detailStateRef.current;
+      if (open && id && data && Number(data.documentId) === Number(id)) {
+        setDetailModalOpened(false);
+      }
+    };
     socket.on('document:created', refresh);
     socket.on('document:updated', refresh);
-    socket.on('document:deleted', refresh);
+    socket.on('document:deleted', handleDeleted);
     return () => {
       socket.off('document:created', refresh);
       socket.off('document:updated', refresh);
-      socket.off('document:deleted', refresh);
+      socket.off('document:deleted', handleDeleted);
     };
   }, [socket, fetchDocuments]);
 
@@ -208,6 +228,16 @@ export default function ManajemenDokumen() {
       setDetailModalOpened(true);
     } catch (err) {
       notifications.show({ title: 'Error', message: 'Gagal mengambil detail dokumen', color: 'red' });
+    }
+  };
+
+  // Re-fetch the currently open detail modal's content (e.g. when a teknisi uploads a new file)
+  const refreshDetail = async (docId: number) => {
+    try {
+      const res = await api.get(`/documents/${docId}`);
+      setSelectedDoc(res.data);
+    } catch {
+      /* ignore — list refresh still happens separately */
     }
   };
 
@@ -604,6 +634,9 @@ export default function ManajemenDokumen() {
                         <Text size="sm" fw={500} truncate style={{ maxWidth: 250 }}>{u.file_name}</Text>
                       </a>
                       <Text size="xs" c="dimmed" mt={2}>Diunggah: {dayjs(u.uploaded_at).format('DD MMM YYYY, HH:mm')}</Text>
+                      {u.notes && (
+                        <Text size="xs" c="dark" mt={4}>📝 Catatan: {u.notes}</Text>
+                      )}
                     </Box>
                     <Badge size="xs">{(u.file_size / 1024 / 1024).toFixed(2)} MB</Badge>
                   </Group>

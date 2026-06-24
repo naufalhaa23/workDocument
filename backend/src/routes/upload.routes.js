@@ -214,20 +214,18 @@ router.post('/files', auth, roleGuard('teknisi', 'admin', 'superadmin'), upload.
         where: { id: Number(document_id) },
         data: { status: 'assigned' }
       });
-      
-      const { getIO } = require('../config/socket');
-      const io = getIO();
-      if (io) {
-        io.to('public_board').emit('board:updated', { documentId: doc.id });
-        doc.assignees.forEach(a => io.to(`user:${a.user_id}`).emit('document:updated', { documentId: doc.id }));
-      }
-      emitToAdmins('document:updated', { documentId: doc.id });
     }
 
     await logActivity({
       userId: req.user.id, action: 'upload', entityType: 'document', entityId: Number(document_id),
       description: `Upload ${req.files.length} file untuk ${doc?.document_number}`, ipAddress: req.ip,
     });
+
+    // Real-time: refresh every viewer so open detail views show the new upload immediately
+    emitToAdmins('document:updated', { documentId: doc.id });
+    emitToTeknisi('document:updated', { documentId: doc.id });
+    emitToUsers(doc.assignees.map((a) => a.user_id), 'document:updated', { documentId: doc.id });
+    emitToPublicBoard('board:updated', { documentId: doc.id });
 
     res.status(201).json(uploads);
   } catch (err) { next(err); }
