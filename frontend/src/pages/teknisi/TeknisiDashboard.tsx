@@ -81,7 +81,13 @@ export default function TeknisiDashboard() {
       {/* Greeting */}
       <Box mb="xl">
         <Title order={3} fw={700} c="#1a1b2e">
-          Selamat Pagi, {user?.username}! 👋
+          {(() => {
+            const h = new Date().getHours();
+            if (h < 12) return `Selamat Pagi, ${user?.username}! 👋`;
+            if (h < 15) return `Selamat Siang, ${user?.username}! 👋`;
+            if (h < 18) return `Selamat Sore, ${user?.username}! 👋`;
+            return `Selamat Malam, ${user?.username}! 👋`;
+          })()}
         </Title>
         <Text size="sm" c="dimmed">
           {new Date().toLocaleDateString('id-ID', {
