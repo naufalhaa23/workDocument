@@ -101,7 +101,7 @@ export default function DetailTugas() {
         variant="subtle"
         color="gray"
         leftSection={<IconArrowLeft size={16} />}
-        onClick={() => navigate('/teknisi/dokumen')}
+        onClick={() => navigate(-1)}
         mb="md"
         px={0}
       >

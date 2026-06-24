@@ -1,12 +1,13 @@
 import {
   Box, Title, Text, Card, Group, Badge, Stack,
-  TextInput, SegmentedControl, ThemeIcon, Loader, Center, ScrollArea
+  TextInput, SegmentedControl, ThemeIcon, Loader, Center, ScrollArea, Button
 } from '@mantine/core';
-import { IconSearch, IconChevronRight, IconFileText } from '@tabler/icons-react';
+import { IconSearch, IconChevronRight, IconFileText, IconUser } from '@tabler/icons-react';
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../../lib/axios';
 import { useSocketConnection } from '../../hooks/useSocket';
+import { useAuthStore } from '../../stores/authStore';
 import dayjs from 'dayjs';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
@@ -20,12 +21,15 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
 };
 
 export default function DaftarTugas() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState('semua');
+  const [filter, setFilter] = useState(searchParams.get('filter') || 'semua');
+  const [tugasSaya, setTugasSaya] = useState(searchParams.get('tugasSaya') === 'true');
   const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const socket = useSocketConnection();
+  const { user } = useAuthStore();
 
   const fetchTasks = async () => {
     try {
@@ -61,10 +65,18 @@ export default function DaftarTugas() {
     };
   }, [socket]);
 
+  useEffect(() => {
+    const params: Record<string, string> = {};
+    if (filter !== 'semua') params.filter = filter;
+    if (tugasSaya) params.tugasSaya = 'true';
+    setSearchParams(params, { replace: true });
+  }, [filter, tugasSaya]);
+
   const filtered = tasks.filter((t) => {
     const matchSearch = t.title.toLowerCase().includes(search.toLowerCase()) || t.document_number.toLowerCase().includes(search.toLowerCase());
     const matchFilter = filter === 'semua' || t.status === filter;
-    return matchSearch && matchFilter;
+    const matchOwner = !tugasSaya || t.assignees?.some((a: any) => a.user.id === user?.id);
+    return matchSearch && matchFilter && matchOwner;
   });
 
   return (
@@ -72,14 +84,25 @@ export default function DaftarTugas() {
       <Title order={3} fw={700} mb="sm">Daftar Pekerjaan</Title>
       <Text size="sm" c="dimmed" mb="md">Daftar seluruh dokumen SP/SPMK di dalam sistem</Text>
 
-      <TextInput
-        placeholder="Cari dokumen..."
-        leftSection={<IconSearch size={16} />}
-        value={search}
-        onChange={(e) => setSearch(e.currentTarget.value)}
-        mb="sm"
-        radius="md"
-      />
+      <Group mb="sm" gap="sm">
+        <TextInput
+          placeholder="Cari dokumen..."
+          leftSection={<IconSearch size={16} />}
+          value={search}
+          onChange={(e) => setSearch(e.currentTarget.value)}
+          radius="md"
+          style={{ flex: 1 }}
+        />
+        <Button
+          size="sm"
+          radius="md"
+          variant={tugasSaya ? 'filled' : 'default'}
+          leftSection={<IconUser size={14} />}
+          onClick={() => setTugasSaya(!tugasSaya)}
+        >
+          Tugas Saya
+        </Button>
+      </Group>
 
       <ScrollArea type="never" offsetScrollbars mb="md">
         <SegmentedControl
