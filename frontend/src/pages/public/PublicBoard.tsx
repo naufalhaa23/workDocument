@@ -146,7 +146,40 @@ export default function PublicBoard() {
     setAccessCode(tempCode);
   };
 
+  // Make the mobile back gesture close an open overlay instead of leaving the board.
+  // Opening an overlay pushes a dummy history entry; pressing back (or X) pops it.
+  useEffect(() => {
+    const onPopState = () => {
+      setDetailOpened(false);
+      setFilterOpened(false);
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  const pushOverlayHistory = () => {
+    if (!window.history.state?.boardOverlay) {
+      window.history.pushState({ boardOverlay: true }, '');
+    }
+  };
+
+  // Unified close for both drawers: pop the dummy entry so the back gesture and X behave the same
+  const closeOverlay = () => {
+    if (window.history.state?.boardOverlay) {
+      window.history.back(); // triggers popstate → closes the drawer
+    } else {
+      setDetailOpened(false);
+      setFilterOpened(false);
+    }
+  };
+
+  const openFilter = () => {
+    pushOverlayHistory();
+    setFilterOpened(true);
+  };
+
   const openDocumentDetail = async (id: number) => {
+    pushOverlayHistory();
     setDetailOpened(true);
     setIsLoadingDetail(true);
     try {
@@ -260,7 +293,7 @@ export default function PublicBoard() {
             fullWidth
             leftSection={<IconSearch size={16} color="#9CA3AF" />}
             rightSection={(search || filterVessel) && <Badge color="blue" size="xs" circle />}
-            onClick={() => setFilterOpened(true)}
+            onClick={openFilter}
             styles={{ inner: { justifyContent: 'flex-start' }, root: { backgroundColor: '#ffffff', border: '1px solid #E5E7EB', height: 42 } }}
             radius="md"
           >
@@ -461,7 +494,7 @@ export default function PublicBoard() {
       {/* ─── Drawer Detail Dokumen ─── */}
       <Drawer
         opened={detailOpened}
-        onClose={() => setDetailOpened(false)}
+        onClose={closeOverlay}
         position="right"
         size="md"
         title={
@@ -526,7 +559,7 @@ export default function PublicBoard() {
       {/* ─── Bottom Sheet Filter (Mobile) ─── */}
       <Drawer
         opened={filterOpened}
-        onClose={() => setFilterOpened(false)}
+        onClose={closeOverlay}
         position="bottom"
         size="auto"
         title={
@@ -558,10 +591,10 @@ export default function PublicBoard() {
             size="md"
           />
           <Group grow mt="sm">
-            <Button variant="light" color="gray" onClick={() => { setSearch(''); setFilterVessel(null); setFilterOpened(false); }}>
+            <Button variant="light" color="gray" onClick={() => { setSearch(''); setFilterVessel(null); closeOverlay(); }}>
               Reset
             </Button>
-            <Button color="blue" onClick={() => setFilterOpened(false)}>
+            <Button color="blue" onClick={closeOverlay}>
               Terapkan
             </Button>
           </Group>
