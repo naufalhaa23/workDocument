@@ -34,6 +34,18 @@ function emitToPublicBoard(event, payload) {
   }
 }
 
+function emitToAdmins(event, payload) {
+  try {
+    const { getIO } = require('../config/socket');
+    const io = getIO();
+    if (!io) return;
+    io.to('role:admin').emit(event, payload);
+    io.to('role:superadmin').emit(event, payload);
+  } catch (err) {
+    console.error('[Socket] emitToAdmins error:', err.message);
+  }
+}
+
 // GET /api/documents — List all (Admin/SA) with pagination, search, filter
 router.get('/', auth, roleGuard('admin', 'superadmin'), async (req, res, next) => {
   try {
@@ -177,6 +189,7 @@ router.post('/', auth, roleGuard('admin', 'superadmin'), async (req, res, next) 
     }
 
     emitToPublicBoard('board:updated', { documentId: doc.id });
+    emitToAdmins('document:created', { documentId: doc.id });
     res.status(201).json(doc);
   } catch (err) { next(err); }
 });
@@ -267,6 +280,7 @@ router.put('/:id', auth, roleGuard('admin', 'superadmin'), async (req, res, next
     }
 
     emitToPublicBoard('board:updated', { documentId: doc.id });
+    emitToAdmins('document:updated', { documentId: doc.id });
     res.json(doc);
   } catch (err) { next(err); }
 });
@@ -337,6 +351,7 @@ router.patch('/:id/status', auth, roleGuard('admin', 'superadmin'), async (req, 
     }
 
     emitToPublicBoard('board:updated', { documentId: doc.id });
+    emitToAdmins('document:updated', { documentId: doc.id });
     res.json(doc);
   } catch (err) { next(err); }
 });
@@ -378,6 +393,7 @@ router.delete('/:id', auth, roleGuard('superadmin'), async (req, res, next) => {
     }
 
     emitToPublicBoard('board:updated', { documentId: docId });
+    emitToAdmins('document:deleted', { documentId: docId });
     res.json({ message: 'Dokumen berhasil dihapus' });
   } catch (err) { next(err); }
 });

@@ -17,6 +17,7 @@ import dayjs from 'dayjs';
 import { api } from '../../lib/axios';
 import { notifications } from '@mantine/notifications';
 import { useDebouncedValue } from '@mantine/hooks';
+import { useSocketConnection } from '../../hooks/useSocket';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   proses: { label: 'Proses', color: 'yellow' },
@@ -29,6 +30,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
 };
 
 export default function ManajemenDokumen() {
+  const socket = useSocketConnection();
   const [documents, setDocuments] = useState<any[]>([]);
   const [totalRecords, setTotalRecords] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -136,6 +138,19 @@ export default function ManajemenDokumen() {
     fetchTeknisi();
     fetchVessels();
   }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+    const refresh = () => fetchDocuments();
+    socket.on('document:created', refresh);
+    socket.on('document:updated', refresh);
+    socket.on('document:deleted', refresh);
+    return () => {
+      socket.off('document:created', refresh);
+      socket.off('document:updated', refresh);
+      socket.off('document:deleted', refresh);
+    };
+  }, [socket, fetchDocuments]);
 
   const openAddModal = () => {
     setFormType('SP');

@@ -6,7 +6,10 @@ let io;
 function initSocket(httpServer) {
   io = new Server(httpServer, {
     cors: {
-      origin: 'http://localhost:5173',
+      origin: [
+        'http://localhost:5173',
+        'http://103.150.195.133',
+      ],
       credentials: true,
     },
   });
