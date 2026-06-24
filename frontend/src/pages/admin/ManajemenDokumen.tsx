@@ -424,8 +424,6 @@ export default function ManajemenDokumen() {
           recordsPerPage={PAGE_SIZE}
           page={page}
           onPageChange={setPage}
-          onRowClick={({ record }) => openDetailModal(record)} // Trigger by single click (double-click usually conflicts with focus/selection mapping in Mantine, so single click allows robust row selection for detail). For exactly double click: onRowDoubleClick.
-          // Using onRowClick because row selection maps nicely. Wait, user specified "klik 2 kali"
           onRowDoubleClick={({ record }) => openDetailModal(record)}
           columns={[
             {
