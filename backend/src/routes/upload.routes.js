@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const prisma = require('../config/database');
 const { auth, roleGuard } = require('../middleware/auth');
 const { logActivity } = require('../services/activityLog.service');
@@ -239,6 +240,40 @@ router.get('/document/:docId', auth, async (req, res, next) => {
       orderBy: { uploaded_at: 'desc' },
     });
     res.json(uploads);
+  } catch (err) { next(err); }
+});
+
+// DELETE /api/uploads/files/:id — Admin/SA delete an uploaded file (DB record + physical file)
+router.delete('/files/:id', auth, roleGuard('admin', 'superadmin'), async (req, res, next) => {
+  try {
+    const uploadId = Number(req.params.id);
+    const record = await prisma.documentUpload.findUnique({ where: { id: uploadId } });
+    if (!record) {
+      return res.status(404).json({ message: 'File tidak ditemukan' });
+    }
+
+    // Remove physical file (best-effort — don't fail the request if the file is already gone)
+    if (record.file_path) {
+      const diskPath = record.file_path.replace(/\\/g, '/');
+      fs.promises.unlink(diskPath).catch((err) => {
+        console.warn('[Upload] gagal menghapus file fisik:', diskPath, err.message);
+      });
+    }
+
+    await prisma.documentUpload.delete({ where: { id: uploadId } });
+
+    await logActivity({
+      userId: req.user.id, action: 'delete', entityType: 'document', entityId: record.document_id,
+      description: `Menghapus file ${record.file_name}`, ipAddress: req.ip,
+    });
+
+    // Real-time: refresh every viewer so the file disappears immediately
+    emitToAdmins('document:updated', { documentId: record.document_id });
+    emitToTeknisi('document:updated', { documentId: record.document_id });
+    emitToUsers([record.uploaded_by], 'document:updated', { documentId: record.document_id });
+    emitToPublicBoard('board:updated', { documentId: record.document_id });
+
+    res.json({ message: 'File berhasil dihapus' });
   } catch (err) { next(err); }
 });
 

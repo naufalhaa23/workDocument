@@ -241,6 +241,25 @@ export default function ManajemenDokumen() {
     }
   };
 
+  const handleDeleteUpload = (uploadId: number) => {
+    modals.openConfirmModal({
+      title: 'Hapus File',
+      centered: true,
+      children: <Text size="sm">Yakin ingin menghapus file ini? File akan dihapus permanen dari server.</Text>,
+      labels: { confirm: 'Hapus', cancel: 'Batal' },
+      confirmProps: { color: 'red' },
+      onConfirm: async () => {
+        try {
+          await api.delete(`/uploads/files/${uploadId}`);
+          notifications.show({ title: 'Sukses', message: 'File berhasil dihapus', color: 'green' });
+          if (selectedDoc) refreshDetail(selectedDoc.id);
+        } catch (err: any) {
+          notifications.show({ title: 'Error', message: err.response?.data?.message || 'Gagal menghapus file', color: 'red' });
+        }
+      },
+    });
+  };
+
   const handleUpdateDocument = async () => {
     if (isSubmitting.current) return;
     isSubmitting.current = true;
@@ -638,7 +657,18 @@ export default function ManajemenDokumen() {
                         <Text size="xs" c="dark" mt={4}>📝 Catatan: {u.notes}</Text>
                       )}
                     </Box>
-                    <Badge size="xs">{(u.file_size / 1024 / 1024).toFixed(2)} MB</Badge>
+                    <Group gap="xs" wrap="nowrap">
+                      <Badge size="xs">{(u.file_size / 1024 / 1024).toFixed(2)} MB</Badge>
+                      <ActionIcon
+                        color="red"
+                        variant="subtle"
+                        size="sm"
+                        onClick={() => handleDeleteUpload(u.id)}
+                        aria-label="Hapus file"
+                      >
+                        <IconTrash size={14} />
+                      </ActionIcon>
+                    </Group>
                   </Group>
                 </Paper>
               ))
