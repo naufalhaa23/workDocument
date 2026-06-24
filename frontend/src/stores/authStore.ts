@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { User, Role } from '../types';
 import { api } from '../lib/axios';
+import { disconnectSocket } from '../hooks/useSocket';
 
 interface AuthState {
   user: User | null;
@@ -59,6 +60,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } catch (err) {
       // ignore
     }
+    // Close the socket so no further events (e.g. our own logout activity) reach the client
+    disconnectSocket();
     set({ user: null, accessToken: null, isAuthenticated: false });
   },
 

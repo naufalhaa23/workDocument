@@ -67,6 +67,8 @@ export default function App() {
     if (!socket) return;
 
     const handleNewNotification = (data: any) => {
+      // Don't show toasts once logged out (socket may emit a final event during logout)
+      if (!useAuthStore.getState().isAuthenticated) return;
       notifications.show({
         title: data.title,
         message: data.message,
@@ -76,6 +78,8 @@ export default function App() {
     };
 
     const handleNewActivity = (data: any) => {
+      // Don't show toasts once logged out
+      if (!useAuthStore.getState().isAuthenticated) return;
       // Sembunyikan live notification ini jika yang sedang login adalah Teknisi
       if (useAuthStore.getState().user?.role === 'teknisi') return;
 
