@@ -46,6 +46,17 @@ function emitToAdmins(event, payload) {
   }
 }
 
+function emitToTeknisi(event, payload) {
+  try {
+    const { getIO } = require('../config/socket');
+    const io = getIO();
+    if (!io) return;
+    io.to('role:teknisi').emit(event, payload);
+  } catch (err) {
+    console.error('[Socket] emitToTeknisi error:', err.message);
+  }
+}
+
 // GET /api/documents — List all (Admin/SA) with pagination, search, filter
 router.get('/', auth, roleGuard('admin', 'superadmin'), async (req, res, next) => {
   try {
@@ -190,6 +201,7 @@ router.post('/', auth, roleGuard('admin', 'superadmin'), async (req, res, next) 
 
     emitToPublicBoard('board:updated', { documentId: doc.id });
     emitToAdmins('document:created', { documentId: doc.id });
+    emitToTeknisi('document:created', { documentId: doc.id });
     res.status(201).json(doc);
   } catch (err) { next(err); }
 });

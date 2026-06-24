@@ -51,9 +51,11 @@ export default function DaftarTugas() {
     const handleDocumentDeleted = () => {
       fetchTasks();
     };
+    socket.on('document:created', handleDocumentUpdated);
     socket.on('document:updated', handleDocumentUpdated);
     socket.on('document:deleted', handleDocumentDeleted);
     return () => {
+      socket.off('document:created', handleDocumentUpdated);
       socket.off('document:updated', handleDocumentUpdated);
       socket.off('document:deleted', handleDocumentDeleted);
     };
