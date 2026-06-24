@@ -20,8 +20,9 @@ router.post('/', auth, roleGuard('admin', 'superadmin'), async (req, res, next) 
   try {
     const { username, email, password, role, telegram_chat_id } = req.body;
     const password_hash = await bcrypt.hash(password, 10);
+    const resolvedEmail = email || `${username}@no-email.local`;
     const user = await prisma.user.create({
-      data: { username, email, password_hash, role, telegram_chat_id },
+      data: { username, email: resolvedEmail, password_hash, role, telegram_chat_id },
       select: { id: true, username: true, email: true, role: true, telegram_chat_id: true, created_at: true },
     });
 
@@ -38,9 +39,10 @@ router.post('/', auth, roleGuard('admin', 'superadmin'), async (req, res, next) 
 router.put('/:id', auth, roleGuard('admin', 'superadmin'), async (req, res, next) => {
   try {
     const { username, email, role, telegram_chat_id } = req.body;
+    const resolvedEmail = email || `${username}@no-email.local`;
     const user = await prisma.user.update({
       where: { id: Number(req.params.id) },
-      data: { username, email, role, telegram_chat_id },
+      data: { username, email: resolvedEmail, role, telegram_chat_id },
       select: { id: true, username: true, email: true, role: true, telegram_chat_id: true },
     });
 

@@ -55,8 +55,8 @@ export default function ManajemenUser() {
   };
 
   const handleCreateUser = async () => {
-    if (!username || !email || !password || !role) {
-      return notifications.show({ title: 'Peringatan', message: 'Semua field wajib diisi', color: 'orange' });
+    if (!username || !password || !role) {
+      return notifications.show({ title: 'Peringatan', message: 'Username, password, dan role wajib diisi', color: 'orange' });
     }
     setSubmitting(true);
     try {
@@ -86,8 +86,8 @@ export default function ManajemenUser() {
   };
 
   const handleEditUser = async () => {
-    if (!editUsername || !editEmail || !editRole) {
-      return notifications.show({ title: 'Peringatan', message: 'Semua field (kecuali Telegram) wajib diisi', color: 'orange' });
+    if (!editUsername || !editRole) {
+      return notifications.show({ title: 'Peringatan', message: 'Username dan role wajib diisi', color: 'orange' });
     }
     setEditing(true);
     try {
@@ -215,7 +215,7 @@ export default function ManajemenUser() {
       <Modal opened={addModalOpened} onClose={() => setAddModalOpened(false)} title={<Group gap="xs"><IconUser size={20} /><Text fw={600}>Tambah User Baru</Text></Group>} size="md" radius="md">
         <Stack gap="md">
           <TextInput label="Username *" placeholder="contoh: teknisi_baru" value={username} onChange={(e) => setUsername(e.currentTarget.value)} />
-          <TextInput label="Email *" placeholder="email@company.com" value={email} onChange={(e) => setEmail(e.currentTarget.value)} />
+          <TextInput label="Email" placeholder="email@company.com (opsional)" value={email} onChange={(e) => setEmail(e.currentTarget.value)} />
           <TextInput label="Telegram Chat ID" placeholder="123456789" value={telegramChatId} onChange={(e) => setTelegramChatId(e.currentTarget.value)} leftSection={<IconBrandTelegram size={16} />} />
           <TextInput label="Password *" placeholder="Minimal 6 karakter" type="password" value={password} onChange={(e) => setPassword(e.currentTarget.value)} />
           <Select label="Role *" placeholder="Pilih role" data={[{ value: 'teknisi', label: 'Teknisi' }, { value: 'admin', label: 'Admin' }]} value={role} onChange={setRole} />
@@ -229,7 +229,7 @@ export default function ManajemenUser() {
       <Modal opened={editModalOpened} onClose={() => setEditModalOpened(false)} title={<Group gap="xs"><IconEdit size={20} /><Text fw={600}>Edit User</Text></Group>} size="md" radius="md">
         <Stack gap="md">
           <TextInput label="Username *" placeholder="contoh: teknisi_baru" value={editUsername} onChange={(e) => setEditUsername(e.currentTarget.value)} />
-          <TextInput label="Email *" placeholder="email@company.com" value={editEmail} onChange={(e) => setEditEmail(e.currentTarget.value)} />
+          <TextInput label="Email" placeholder="email@company.com (opsional)" value={editEmail} onChange={(e) => setEditEmail(e.currentTarget.value)} />
           <TextInput label="Telegram Chat ID" placeholder="123456789" value={editTelegramChatId} onChange={(e) => setEditTelegramChatId(e.currentTarget.value)} leftSection={<IconBrandTelegram size={16} />} />
           <Select label="Role *" placeholder="Pilih role" data={[{ value: 'teknisi', label: 'Teknisi' }, { value: 'admin', label: 'Admin' }, { value: 'superadmin', label: 'Superadmin' }]} value={editRole} onChange={setEditRole} />
           <Group justify="flex-end" mt="md">
