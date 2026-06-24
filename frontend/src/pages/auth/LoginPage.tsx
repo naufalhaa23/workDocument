@@ -187,20 +187,6 @@ export default function LoginPage() {
                   </Link>
                 </Box>
 
-                {/* Dev hint */}
-                <Paper
-                  p="xs"
-                  radius="md"
-                  style={{
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.06)',
-                  }}
-                >
-                  <Text size="xs" c="dimmed" ta="center">
-                    Demo: admin/admin123 · superadmin/super123 · ahmad/teknisi123
-                  </Text>
-                </Paper>
-
                 {/* Link ke Board Publik */}
                 <Link to="/board" style={{ textDecoration: 'none' }}>
                   <Paper
