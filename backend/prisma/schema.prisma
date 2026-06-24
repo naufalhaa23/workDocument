@@ -1,0 +1,295 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model User {
+  id                        Int                  @id @default(autoincrement())
+  username                  String               @unique
+  email                     String               @unique
+  password_hash             String
+  telegram_chat_id          String?
+  role                      Role                 @default(teknisi)
+  created_at                DateTime             @default(now())
+  
+  assignedDocuments         DocumentAssignee[]
+  createdDocuments          Document[]           @relation("CreatedBy")
+  requestedUploads          UploadPermission[]   @relation("UploadRequestedBy")
+  approvedUploads           UploadPermission[]   @relation("UploadApprovedBy")
+  requestedItems            InventoryRequest[]   @relation("ItemRequestedBy")
+  approvedItems             InventoryRequest[]   @relation("ItemApprovedBy")
+  notifications             Notification[]
+  activityLogs              ActivityLog[]
+  documentUploads           DocumentUpload[]
+  refreshTokens             RefreshToken[]
+  telegramLogs              TelegramLog[]
+  whatsappLogs              WhatsappLog[]
+
+  @@map("users")
+}
+
+model Document {
+  id                 Int                @id @default(autoincrement())
+  document_type      DocumentType
+  document_number    String             @unique
+  document_date      DateTime           @db.Date
+  title              String
+  nama_kapal         String?
+  status             DocumentStatus     @default(proses)
+  created_by         Int
+  deadline_sn        DateTime?
+  created_at         DateTime           @default(now())
+  updated_at         DateTime           @updatedAt
+
+  createdBy          User               @relation("CreatedBy", fields: [created_by], references: [id])
+  assignees          DocumentAssignee[]
+  uploads            DocumentUpload[]
+  uploadPermissions  UploadPermission[]
+
+  @@index([status])
+  @@map("documents")
+}
+
+model DocumentAssignee {
+  document_id Int
+  user_id     Int
+
+  document    Document @relation(fields: [document_id], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@id([document_id, user_id])
+  @@map("document_assignees")
+}
+
+model DocumentUpload {
+  id             Int      @id @default(autoincrement())
+  document_id    Int
+  uploaded_by    Int
+  file_path      String
+  file_name      String
+  file_type      String
+  file_size      Int
+  notes          String?  @db.Text
+  uploaded_at    DateTime @default(now())
+
+  document       Document @relation(fields: [document_id], references: [id])
+  uploadedBy     User     @relation(fields: [uploaded_by], references: [id])
+
+  @@map("document_uploads")
+}
+
+model UploadPermission {
+  id             Int                  @id @default(autoincrement())
+  document_id    Int
+  requested_by   Int
+  approved_by    Int?
+  status         PermissionStatus     @default(pending)
+  admin_notes    String?              @db.Text
+  requested_at   DateTime             @default(now())
+  responded_at   DateTime?
+
+  document       Document @relation(fields: [document_id], references: [id])
+  requestedBy    User     @relation("UploadRequestedBy", fields: [requested_by], references: [id])
+  approvedBy     User?    @relation("UploadApprovedBy", fields: [approved_by], references: [id])
+
+  @@index([status])
+  @@map("upload_permissions")
+}
+
+model InventoryItem {
+  id             Int                @id @default(autoincrement())
+  item_code      String             @unique
+  name           String
+  description    String?            @db.Text
+  unit           String
+  stock_qty      Int                @default(0)
+  min_stock      Int                @default(0)
+  category       String?
+  is_active      Boolean            @default(true)
+  created_at     DateTime           @default(now())
+  updated_at     DateTime           @updatedAt
+
+  requests       InventoryRequest[]
+
+  @@map("inventory_items")
+}
+
+model InventoryRequest {
+  id             Int                  @id @default(autoincrement())
+  item_id        Int
+  requested_by   Int
+  approved_by    Int?
+  quantity       Int
+  reason         String               @db.Text
+  status         PermissionStatus     @default(pending)
+  admin_notes    String?              @db.Text
+  requested_at   DateTime             @default(now())
+  responded_at   DateTime?
+
+  item           InventoryItem @relation(fields: [item_id], references: [id])
+  requestedBy    User          @relation("ItemRequestedBy", fields: [requested_by], references: [id])
+  approvedBy     User?         @relation("ItemApprovedBy", fields: [approved_by], references: [id])
+
+  @@index([status])
+  @@map("inventory_requests")
+}
+
+model Notification {
+  id               Int      @id @default(autoincrement())
+  user_id          Int
+  title            String
+  message          String   @db.Text
+  type             NotificationType
+  reference_type   String?
+  reference_id     Int?
+  is_read          Boolean  @default(false)
+  created_at       DateTime @default(now())
+
+  user             User     @relation(fields: [user_id], references: [id])
+
+  @@index([user_id, is_read])
+  @@map("notifications")
+}
+
+model ActivityLog {
+  id             Int         @id @default(autoincrement())
+  user_id        Int
+  action         ActionType
+  entity_type    String?
+  entity_id      Int?
+  description    String      @db.Text
+  old_values     Json?
+  new_values     Json?
+  ip_address     String?
+  created_at     DateTime    @default(now())
+
+  user           User        @relation(fields: [user_id], references: [id])
+
+  @@index([user_id, created_at])
+  @@index([entity_type, entity_id])
+  @@map("activity_logs")
+}
+
+model RefreshToken {
+  id             Int      @id @default(autoincrement())
+  user_id        Int
+  token          String   @unique @db.VarChar(500)
+  expires_at     DateTime
+  created_at     DateTime @default(now())
+
+  user           User     @relation(fields: [user_id], references: [id])
+
+  @@map("refresh_tokens")
+}
+
+model TelegramLog {
+  id               Int      @id @default(autoincrement())
+  user_id          Int?
+  telegram_chat_id String
+  message          String   @db.Text
+  status           String   
+  message_id       String?
+  retry_count      Int      @default(0)
+  error_detail     String?  @db.Text
+  reference_type   String?
+  reference_id     Int?
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  user             User?    @relation(fields: [user_id], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@map("telegram_logs")
+}
+
+model WhatsappLog {
+  id               Int      @id @default(autoincrement())
+  user_id          Int?
+  target_number    String
+  message          String   @db.Text
+  status           String   
+  message_id       String?
+  retry_count      Int      @default(0)
+  error_detail     String?  @db.Text
+  reference_type   String?
+  reference_id     Int?
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  user             User?    @relation(fields: [user_id], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@map("whatsapp_logs")
+}
+
+model PasswordReset {
+  id         Int      @id @default(autoincrement())
+  email      String
+  token      String
+  expires_at DateTime
+  created_at DateTime @default(now())
+
+  @@map("password_resets")
+}
+
+model SystemSetting {
+  id          Int      @id @default(autoincrement())
+  key         String   @unique
+  value       String   @db.Text
+  description String?  @db.Text
+  updated_at  DateTime @updatedAt
+
+  @@map("system_settings")
+}
+
+enum Role {
+  teknisi
+  admin
+  superadmin
+}
+
+enum DocumentType {
+  SP
+  SPMK
+}
+
+enum DocumentStatus {
+  proses
+  menunggu_izin
+  upload_diizinkan
+  draft_sn
+  draft_pra
+  assigned
+  selesai
+}
+
+enum PermissionStatus {
+  pending
+  approved
+  rejected
+}
+
+enum NotificationType {
+  upload_request
+  upload_approved
+  upload_rejected
+  inventory_request
+  inventory_approved
+  inventory_rejected
+  deadline_warning
+  system
+}
+
+enum ActionType {
+  create
+  update
+  delete
+  approve
+  reject
+  upload
+  login
+  logout
+}
