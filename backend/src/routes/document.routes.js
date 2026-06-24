@@ -231,9 +231,20 @@ router.put('/:id', auth, roleGuard('admin', 'superadmin'), async (req, res, next
 
     // Validate status transition if status is changing
     if (status && status !== oldDoc.status) {
+      // 'menunggu_izin' & 'upload_diizinkan' are workflow-only (teknisi request / admin approve)
+      if (status === 'menunggu_izin') {
+        return res.status(400).json({
+          message: "Status 'Menunggu Izin' hanya muncul dari permintaan upload teknisi, tidak bisa diset manual."
+        });
+      }
+      if (status === 'upload_diizinkan') {
+        return res.status(400).json({
+          message: "Status 'Upload Diizinkan' hanya bisa diset lewat persetujuan di halaman Persetujuan, tidak bisa diset manual."
+        });
+      }
       const validTransitions = {
-        'proses': ['menunggu_izin', 'draft_sn'],
-        'menunggu_izin': ['upload_diizinkan', 'proses', 'draft_sn'],
+        'proses': ['draft_sn'],
+        'menunggu_izin': ['proses', 'draft_sn'],
         'upload_diizinkan': ['draft_sn', 'proses'],
         'draft_sn': ['draft_pra', 'assigned', 'proses'],
         'draft_pra': ['assigned', 'proses'],
@@ -322,9 +333,11 @@ router.patch('/:id/status', auth, roleGuard('admin', 'superadmin'), async (req, 
       return res.status(404).json({ message: 'Dokumen tidak ditemukan' });
     }
 
+    // 'menunggu_izin' & 'upload_diizinkan' are driven by the upload-permission workflow
+    // (teknisi request / admin approve) and must NOT be set manually here.
     const validTransitions = {
-      'proses': ['menunggu_izin', 'draft_sn'],
-      'menunggu_izin': ['upload_diizinkan', 'proses', 'draft_sn'],
+      'proses': ['draft_sn'],
+      'menunggu_izin': ['proses', 'draft_sn'],
       'upload_diizinkan': ['draft_sn', 'proses'],
       'draft_sn': ['draft_pra', 'assigned', 'proses'],
       'draft_pra': ['assigned', 'proses'],
@@ -333,6 +346,16 @@ router.patch('/:id/status', auth, roleGuard('admin', 'superadmin'), async (req, 
     };
 
     if (currentDoc.status !== status) {
+      if (status === 'menunggu_izin') {
+        return res.status(400).json({
+          message: "Status 'Menunggu Izin' hanya muncul dari permintaan upload teknisi, tidak bisa diset manual."
+        });
+      }
+      if (status === 'upload_diizinkan') {
+        return res.status(400).json({
+          message: "Status 'Upload Diizinkan' hanya bisa diset lewat persetujuan di halaman Persetujuan, tidak bisa diset manual."
+        });
+      }
       const allowedNextStates = validTransitions[currentDoc.status] || [];
       if (!allowedNextStates.includes(status)) {
         return res.status(400).json({

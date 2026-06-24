@@ -540,7 +540,12 @@ export default function ManajemenDokumen() {
               render: (record) => (
                 <Select
                   size="xs"
-                  data={Object.entries(STATUS_CONFIG).map(([k, v]) => ({ value: k, label: v.label }))}
+                  data={Object.entries(STATUS_CONFIG).map(([k, v]) => ({
+                    value: k,
+                    label: v.label,
+                    // Workflow-only statuses can't be set manually from the table
+                    disabled: k === 'menunggu_izin' || k === 'upload_diizinkan',
+                  }))}
                   value={record.status}
                   onChange={(val) => val && handleInlineStatusChange(record.id, val)}
                   onClick={(e) => e.stopPropagation()}
@@ -874,7 +879,12 @@ export default function ManajemenDokumen() {
           <SimpleGrid cols={{ base: 1, sm: 2 }}>
             <Select
               label="Ubah Status"
-              data={Object.entries(STATUS_CONFIG).map(([k, v]) => ({ value: k, label: v.label }))}
+              data={Object.entries(STATUS_CONFIG).map(([k, v]) => ({
+                value: k,
+                label: v.label,
+                // Workflow-only statuses can't be set manually
+                disabled: k === 'menunggu_izin' || k === 'upload_diizinkan',
+              }))}
               value={formStatus}
               onChange={(v) => setFormStatus(v || 'proses')}
             />
