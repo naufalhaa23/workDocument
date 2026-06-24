@@ -14,16 +14,12 @@ export function useSocketConnection() {
   useEffect(() => {
     if (!isAuthenticated || !accessToken) return;
 
-    // Reuse existing connected instance
-    if (socketInstance && socketInstance.connected) {
+    // Reuse the existing instance (connected OR still connecting).
+    // Never tear down a live socket just because a second component mounted —
+    // doing so would drop listeners already attached elsewhere (e.g. notification:new in App.tsx).
+    if (socketInstance) {
       setSocket(socketInstance);
       return;
-    }
-
-    // If instance exists but not connected, disconnect and recreate
-    if (socketInstance) {
-      socketInstance.disconnect();
-      socketInstance = null;
     }
 
     const newSocket = io(import.meta.env.VITE_WS_URL || 'http://localhost:5000', {
@@ -35,10 +31,12 @@ export function useSocketConnection() {
     });
 
     socketInstance = newSocket;
+    // Expose immediately so every consumer attaches listeners to the SAME instance.
+    // Socket.io queues handlers registered before 'connect', so this is safe.
+    setSocket(newSocket);
 
     newSocket.on('connect', () => {
       console.log('🔌 Socket connected:', newSocket.id);
-      setSocket(newSocket);
     });
 
     newSocket.on('disconnect', (reason) => {
@@ -47,11 +45,6 @@ export function useSocketConnection() {
 
     newSocket.on('connect_error', (err) => {
       console.error('Socket connection error:', err.message);
-    });
-
-    newSocket.on('reconnect', () => {
-      console.log('🔌 Socket reconnected');
-      setSocket(newSocket);
     });
 
     // Don't disconnect on unmount — keep connection alive across page navigation.
