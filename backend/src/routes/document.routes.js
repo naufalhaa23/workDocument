@@ -303,6 +303,7 @@ router.put('/:id', auth, roleGuard('admin', 'superadmin'), async (req, res, next
 
     emitToPublicBoard('board:updated', { documentId: doc.id });
     emitToAdmins('document:updated', { documentId: doc.id });
+    emitToTeknisi('document:updated', { documentId: doc.id });
     res.json(doc);
   } catch (err) { next(err); }
 });
@@ -374,6 +375,7 @@ router.patch('/:id/status', auth, roleGuard('admin', 'superadmin'), async (req, 
 
     emitToPublicBoard('board:updated', { documentId: doc.id });
     emitToAdmins('document:updated', { documentId: doc.id });
+    emitToTeknisi('document:updated', { documentId: doc.id });
     res.json(doc);
   } catch (err) { next(err); }
 });
@@ -416,6 +418,7 @@ router.delete('/:id', auth, roleGuard('superadmin'), async (req, res, next) => {
 
     emitToPublicBoard('board:updated', { documentId: docId });
     emitToAdmins('document:deleted', { documentId: docId });
+    emitToTeknisi('document:deleted', { documentId: docId });
     res.json({ message: 'Dokumen berhasil dihapus' });
   } catch (err) { next(err); }
 });
