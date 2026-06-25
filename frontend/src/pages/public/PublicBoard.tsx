@@ -11,6 +11,7 @@ import dayjs from 'dayjs';
 import { Link } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import { api } from '../../lib/axios';
+import { getFileExt, isSnFile } from '../../lib/fileUtils';
 
 interface PublicDocument {
   id: number;
@@ -25,26 +26,9 @@ const KANBAN_COLUMNS = [
   {
     id: 'list_pekerjaan',
     title: 'LIST PEKERJAAN',
-    statuses: ['proses', 'menunggu_izin', 'upload_diizinkan'],
-    borderColor: '#9CA3AF', // Gray 400
-  },
-  {
-    id: 'draft',
-    title: 'DRAFT',
-    statuses: ['draft_sn'],
+    // Semua pekerjaan berjalan: proses (putih) + sudah ada draft SN s/d TTD (oren)
+    statuses: ['proses', 'menunggu_izin', 'upload_diizinkan', 'draft_sn', 'draft_pra', 'assigned'],
     borderColor: '#FBBF24', // Amber 400
-  },
-  {
-    id: 'pra_ttd',
-    title: 'PRA TTD',
-    statuses: ['draft_pra'],
-    borderColor: '#60A5FA', // Blue 400
-  },
-  {
-    id: 'ttd',
-    title: 'TANDA TANGAN',
-    statuses: ['assigned'],
-    borderColor: '#A78BFA', // Purple 400
   },
   {
     id: 'selesai',
@@ -53,6 +37,19 @@ const KANBAN_COLUMNS = [
     borderColor: '#34D399', // Emerald 400
   }
 ];
+
+// Card color bucket per workflow stage
+type Bucket = 'proses' | 'draft_sn' | 'selesai';
+const bucketOf = (status: string): Bucket => {
+  if (status === 'selesai') return 'selesai';
+  if (['draft_sn', 'draft_pra', 'assigned'].includes(status)) return 'draft_sn';
+  return 'proses'; // proses, menunggu_izin, upload_diizinkan
+};
+const BUCKET_STYLE: Record<Bucket, { bg: string; border: string }> = {
+  proses: { bg: '#ffffff', border: '#E5E7EB' },     // belum ada draft SN → putih
+  draft_sn: { bg: '#FEF3C7', border: '#FCD34D' },   // sudah draft SN, belum close → kuning/oren
+  selesai: { bg: '#D1FAE5', border: '#6EE7B7' },    // close TTD → hijau
+};
 
 const STATUS_BADGE: Record<string, { label: string; bg: string; color: string }> = {
   proses: { label: 'PROSES', bg: '#DBEAFE', color: '#1D4ED8' },
@@ -389,7 +386,7 @@ export default function PublicBoard() {
                 columnData[activeTab]?.map(doc => {
                   const badge = STATUS_BADGE[doc.status] || { label: doc.status, bg: '#F3F4F6', color: '#374151' };
                   return (
-                    <Box key={doc.id} className="kanban-card" onClick={() => openDocumentDetail(doc.id)}>
+                    <Box key={doc.id} className="kanban-card" style={{ backgroundColor: BUCKET_STYLE[bucketOf(doc.status)].bg, borderColor: BUCKET_STYLE[bucketOf(doc.status)].border }} onClick={() => openDocumentDetail(doc.id)}>
                       <Flex justify="space-between" align="flex-start" mb={8}>
                         <Text size="sm" fw={600} c="gray.9" lineClamp={2}>{doc.title}</Text>
                       </Flex>
@@ -451,7 +448,7 @@ export default function PublicBoard() {
                         cards.map(doc => {
                           const badge = STATUS_BADGE[doc.status] || { label: doc.status, bg: '#F3F4F6', color: '#374151' };
                           return (
-                            <Box key={doc.id} className="kanban-card" onClick={() => openDocumentDetail(doc.id)}>
+                            <Box key={doc.id} className="kanban-card" style={{ backgroundColor: BUCKET_STYLE[bucketOf(doc.status)].bg, borderColor: BUCKET_STYLE[bucketOf(doc.status)].border }} onClick={() => openDocumentDetail(doc.id)}>
                               <Flex justify="space-between" align="flex-start" mb={12}>
                                 <Text size="sm" fw={600} c="gray.9" lineClamp={2}>{doc.title}</Text>
                               </Flex>
@@ -531,21 +528,42 @@ export default function PublicBoard() {
             <Box>
               <Text fw={600} mb="xs">Evidences / Berkas</Text>
               {selectedDoc.uploads && selectedDoc.uploads.length > 0 ? (
-                <Stack gap="xs">
-                  {selectedDoc.uploads.map((u: any, i: number) => (
+                (() => {
+                  const renderFile = (u: any, i: number) => (
                     <Paper key={i} p="xs" withBorder>
-                      <Group justify="space-between">
-                        <Box>
+                      <Group justify="space-between" wrap="nowrap">
+                        <Box style={{ minWidth: 0 }}>
                           <a href={`${import.meta.env.VITE_BASE_URL === '/' ? '' : (import.meta.env.VITE_BASE_URL || 'http://localhost:5000')}/${u.file_path?.replace(/\\/g, '/')}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: '#228be6' }}>
                             <Text size="sm" fw={500} truncate style={{ maxWidth: 200 }}>{u.file_name}</Text>
                           </a>
                           <Text size="xs" c="dimmed">{dayjs(u.uploaded_at).format('DD MMM YYYY HH:mm')}</Text>
                         </Box>
-                        <Badge size="xs">{(u.file_size / 1024 / 1024).toFixed(2)} MB</Badge>
+                        <Group gap={6} wrap="nowrap">
+                          <Badge size="xs" variant="light" color="gray">{getFileExt(u)}</Badge>
+                          <Badge size="xs">{(u.file_size / 1024 / 1024).toFixed(2)} MB</Badge>
+                        </Group>
                       </Group>
                     </Paper>
-                  ))}
-                </Stack>
+                  );
+                  const snFiles = selectedDoc.uploads.filter((u: any) => isSnFile(u.file_name));
+                  const otherFiles = selectedDoc.uploads.filter((u: any) => !isSnFile(u.file_name));
+                  return (
+                    <Stack gap="md">
+                      {snFiles.length > 0 && (
+                        <Box>
+                          <Text size="xs" fw={700} c="violet" tt="uppercase" mb={6}>📄 Dokumen SN</Text>
+                          <Stack gap="xs">{snFiles.map(renderFile)}</Stack>
+                        </Box>
+                      )}
+                      {otherFiles.length > 0 && (
+                        <Box>
+                          <Text size="xs" fw={700} c="dimmed" tt="uppercase" mb={6}>Dokumen Lain</Text>
+                          <Stack gap="xs">{otherFiles.map(renderFile)}</Stack>
+                        </Box>
+                      )}
+                    </Stack>
+                  );
+                })()
               ) : (
                 <Text size="sm" c="dimmed">Belum ada berkas</Text>
               )}

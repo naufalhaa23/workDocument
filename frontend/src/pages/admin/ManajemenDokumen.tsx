@@ -18,6 +18,7 @@ import { api } from '../../lib/axios';
 import { notifications } from '@mantine/notifications';
 import { useDebouncedValue } from '@mantine/hooks';
 import { useSocketConnection } from '../../hooks/useSocket';
+import { getFileExt, isSnFile } from '../../lib/fileUtils';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   proses: { label: 'Proses', color: 'yellow' },
@@ -193,7 +194,8 @@ export default function ManajemenDokumen() {
       await api.post('/documents', {
         document_type: formType,
         document_number: formNumber,
-        document_date: formDate ? dayjs(formDate).toISOString() : undefined,
+        // date-only field — send local calendar date to avoid UTC off-by-one
+        document_date: formDate ? dayjs(formDate).format('YYYY-MM-DD') : undefined,
         title: formTitle,
         nama_kapal: formNamaKapal || undefined,
         assignees: formTeknisi,
@@ -260,6 +262,40 @@ export default function ManajemenDokumen() {
     });
   };
 
+  const renderUploadRow = (u: any) => (
+    <Paper key={u.id} p="xs" withBorder>
+      <Group justify="space-between" wrap="nowrap">
+        <Box style={{ minWidth: 0 }}>
+          <a
+            href={`${import.meta.env.VITE_BASE_URL === '/' ? '' : (import.meta.env.VITE_BASE_URL || 'http://localhost:5000')}/${u.file_path?.replace(/\\/g, '/')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ textDecoration: 'none', color: '#228be6', display: 'flex', alignItems: 'center', gap: 8 }}
+          >
+            <Text size="sm" fw={500} truncate style={{ maxWidth: 230 }}>{u.file_name}</Text>
+          </a>
+          <Text size="xs" c="dimmed" mt={2}>Diunggah: {dayjs(u.uploaded_at).format('DD MMM YYYY, HH:mm')}</Text>
+          {u.notes && (
+            <Text size="xs" c="dark" mt={4}>📝 Catatan: {u.notes}</Text>
+          )}
+        </Box>
+        <Group gap="xs" wrap="nowrap">
+          <Badge size="xs" variant="light" color="gray">{getFileExt(u)}</Badge>
+          <Badge size="xs">{(u.file_size / 1024 / 1024).toFixed(2)} MB</Badge>
+          <ActionIcon
+            color="red"
+            variant="subtle"
+            size="sm"
+            onClick={() => handleDeleteUpload(u.id)}
+            aria-label="Hapus file"
+          >
+            <IconTrash size={14} />
+          </ActionIcon>
+        </Group>
+      </Group>
+    </Paper>
+  );
+
   const handleUpdateDocument = async () => {
     if (isSubmitting.current) return;
     isSubmitting.current = true;
@@ -274,7 +310,8 @@ export default function ManajemenDokumen() {
       await api.put(`/documents/${selectedDoc.id}`, {
         document_type: formType,
         document_number: formNumber,
-        document_date: formDate ? dayjs(formDate).toISOString() : undefined,
+        // date-only field — send local calendar date to avoid UTC off-by-one
+        document_date: formDate ? dayjs(formDate).format('YYYY-MM-DD') : undefined,
         title: formTitle,
         nama_kapal: formNamaKapal || undefined,
         assignees: formTeknisi,
@@ -343,6 +380,7 @@ export default function ManajemenDokumen() {
         Tanggal: dayjs(d.document_date).format('DD MMM YYYY'),
         Jenis: d.document_type,
         'Judul Dokumen': d.title,
+        'Nama Kapal': d.nama_kapal || '-',
         Teknisi: d.assignees?.map((a: any) => a.user.username).join(', ') || '-',
         Status: STATUS_CONFIG[d.status]?.label || d.status,
       }));
@@ -493,9 +531,9 @@ export default function ManajemenDokumen() {
             {
               accessor: 'document_date',
               title: 'Tanggal',
-              width: 100,
+              width: 120,
               render: (record) => (
-                <Text size="sm">{record.document_date ? dayjs(record.document_date).format('DD MMM') : '-'}</Text>
+                <Text size="sm">{record.document_date ? dayjs(record.document_date).format('DD MMM YYYY') : '-'}</Text>
               ),
             },
             {
@@ -645,38 +683,26 @@ export default function ManajemenDokumen() {
             <Divider my="sm" />
             <Text fw={600}>Riwayat Upload Evidence</Text>
             {selectedDoc.uploads && selectedDoc.uploads.length > 0 ? (
-              selectedDoc.uploads.map((u: any) => (
-                <Paper key={u.id} p="xs" withBorder>
-                  <Group justify="space-between">
-                    <Box>
-                      <a
-                        href={`${import.meta.env.VITE_BASE_URL === '/' ? '' : (import.meta.env.VITE_BASE_URL || 'http://localhost:5000')}/${u.file_path?.replace(/\\/g, '/')}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ textDecoration: 'none', color: '#228be6', display: 'flex', alignItems: 'center', gap: 8 }}
-                      >
-                        <Text size="sm" fw={500} truncate style={{ maxWidth: 250 }}>{u.file_name}</Text>
-                      </a>
-                      <Text size="xs" c="dimmed" mt={2}>Diunggah: {dayjs(u.uploaded_at).format('DD MMM YYYY, HH:mm')}</Text>
-                      {u.notes && (
-                        <Text size="xs" c="dark" mt={4}>📝 Catatan: {u.notes}</Text>
-                      )}
-                    </Box>
-                    <Group gap="xs" wrap="nowrap">
-                      <Badge size="xs">{(u.file_size / 1024 / 1024).toFixed(2)} MB</Badge>
-                      <ActionIcon
-                        color="red"
-                        variant="subtle"
-                        size="sm"
-                        onClick={() => handleDeleteUpload(u.id)}
-                        aria-label="Hapus file"
-                      >
-                        <IconTrash size={14} />
-                      </ActionIcon>
-                    </Group>
-                  </Group>
-                </Paper>
-              ))
+              (() => {
+                const snFiles = selectedDoc.uploads.filter((u: any) => isSnFile(u.file_name));
+                const otherFiles = selectedDoc.uploads.filter((u: any) => !isSnFile(u.file_name));
+                return (
+                  <Stack gap="md">
+                    {snFiles.length > 0 && (
+                      <Box>
+                        <Text size="xs" fw={700} c="violet" tt="uppercase" mb={6}>📄 Dokumen SN</Text>
+                        <Stack gap="xs">{snFiles.map(renderUploadRow)}</Stack>
+                      </Box>
+                    )}
+                    {otherFiles.length > 0 && (
+                      <Box>
+                        <Text size="xs" fw={700} c="dimmed" tt="uppercase" mb={6}>Dokumen Lain (SP/SPMK/FPP)</Text>
+                        <Stack gap="xs">{otherFiles.map(renderUploadRow)}</Stack>
+                      </Box>
+                    )}
+                  </Stack>
+                );
+              })()
             ) : (
               <Text size="sm" c="dimmed">Belum ada file evidence yang di-upload.</Text>
             )}

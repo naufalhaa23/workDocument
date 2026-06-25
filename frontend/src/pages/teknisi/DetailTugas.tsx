@@ -10,6 +10,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { api } from '../../lib/axios';
 import { notifications } from '@mantine/notifications';
+import { getFileExt, isSnFile } from '../../lib/fileUtils';
 import dayjs from 'dayjs';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
@@ -200,29 +201,50 @@ export default function DetailTugas() {
       {task.uploads?.length > 0 && (
         <Paper p="lg" radius="md" shadow="sm" mb="md" style={{ border: '1px solid #e9ecef' }}>
           <Title order={5} fw={600} mb="sm">File yang Di-Upload</Title>
-          <Stack gap="xs">
-            {task.uploads.map((f: any) => (
+          {(() => {
+            const renderFile = (f: any) => (
               <Card key={f.id} p="sm" radius="md" bg="gray.0">
-                <Group justify="space-between">
+                <Group justify="space-between" wrap="nowrap">
                   <a
                     href={`${import.meta.env.VITE_BASE_URL === '/' ? '' : (import.meta.env.VITE_BASE_URL || 'http://localhost:5000')}/${f.file_path?.replace(/\\/g, '/')}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ textDecoration: 'none', color: '#228be6', display: 'flex', alignItems: 'center', gap: 8 }}
+                    style={{ textDecoration: 'none', color: '#228be6', display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}
                   >
                     <IconFile size={16} />
-                    <Text size="sm" truncate style={{ maxWidth: 200 }}>{f.file_name}</Text>
+                    <Text size="sm" truncate style={{ maxWidth: 180 }}>{f.file_name}</Text>
                   </a>
-                  <Badge size="xs" variant="light" color="blue">
-                    {(f.file_size / 1024 / 1024).toFixed(2)} MB
-                  </Badge>
+                  <Group gap={6} wrap="nowrap">
+                    <Badge size="xs" variant="light" color="gray">{getFileExt(f)}</Badge>
+                    <Badge size="xs" variant="light" color="blue">
+                      {(f.file_size / 1024 / 1024).toFixed(2)} MB
+                    </Badge>
+                  </Group>
                 </Group>
                 {f.notes && (
                   <Text size="xs" c="dark" mt={6}>📝 Catatan: {f.notes}</Text>
                 )}
               </Card>
-            ))}
-          </Stack>
+            );
+            const snFiles = task.uploads.filter((f: any) => isSnFile(f.file_name));
+            const otherFiles = task.uploads.filter((f: any) => !isSnFile(f.file_name));
+            return (
+              <Stack gap="md">
+                {snFiles.length > 0 && (
+                  <Box>
+                    <Text size="xs" fw={700} c="violet" tt="uppercase" mb={6}>📄 Dokumen SN</Text>
+                    <Stack gap="xs">{snFiles.map(renderFile)}</Stack>
+                  </Box>
+                )}
+                {otherFiles.length > 0 && (
+                  <Box>
+                    <Text size="xs" fw={700} c="dimmed" tt="uppercase" mb={6}>Dokumen Lain</Text>
+                    <Stack gap="xs">{otherFiles.map(renderFile)}</Stack>
+                  </Box>
+                )}
+              </Stack>
+            );
+          })()}
         </Paper>
       )}
 
