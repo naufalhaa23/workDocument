@@ -55,13 +55,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   logout: async () => {
+    // Disconnect the socket FIRST: the logout request makes the backend emit a
+    // logout 'activity:new' event, and if the socket is still connected the client
+    // receives its own logout toast on the login page. Token stays valid for the call.
+    disconnectSocket();
     try {
       await api.post('/auth/logout');
     } catch (err) {
       // ignore
     }
-    // Close the socket so no further events (e.g. our own logout activity) reach the client
-    disconnectSocket();
     set({ user: null, accessToken: null, isAuthenticated: false });
   },
 
