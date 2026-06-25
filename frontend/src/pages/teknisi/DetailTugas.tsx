@@ -232,7 +232,7 @@ export default function DetailTugas() {
               <Stack gap="md">
                 {snFiles.length > 0 && (
                   <Box>
-                    <Text size="xs" fw={700} c="violet" tt="uppercase" mb={6}>📄 Dokumen SN</Text>
+                    <Text size="xs" fw={700} c="dimmed" tt="uppercase" mb={6}>Dokumen SN</Text>
                     <Stack gap="xs">{snFiles.map(renderFile)}</Stack>
                   </Box>
                 )}
