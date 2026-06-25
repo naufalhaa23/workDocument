@@ -393,6 +393,7 @@ export default function PublicBoard() {
               </Flex>
             </ScrollArea>
             
+            <ScrollArea.Autosize mah="calc(100vh - 220px)" type="auto" offsetScrollbars>
             <Stack gap={12}>
               {columnData[activeTab]?.length === 0 ? (
                 <Box className="empty-state">
@@ -434,6 +435,7 @@ export default function PublicBoard() {
                 })
               )}
             </Stack>
+            </ScrollArea.Autosize>
           </Box>
         ) : (
           // Desktop View: Horizontal scroll
@@ -455,6 +457,7 @@ export default function PublicBoard() {
                         <Badge color="blue.1" c="blue.7" variant="filled" size="sm" radius="sm">{cards.length} Dokumen</Badge>
                       </Group>
                     </Flex>
+                    <ScrollArea.Autosize mah="calc(100vh - 240px)" type="auto" offsetScrollbars>
                     <Stack gap={12}>
                       {cards.length === 0 ? (
                         <Box className="empty-state">
@@ -497,6 +500,7 @@ export default function PublicBoard() {
                         })
                       )}
                     </Stack>
+                    </ScrollArea.Autosize>
                   </Box>
                 );
               })}
@@ -574,7 +578,7 @@ export default function PublicBoard() {
                       )}
                       {otherFiles.length > 0 && (
                         <Box>
-                          <Text size="xs" fw={700} c="dimmed" tt="uppercase" mb={6}>Dokumen Lain</Text>
+                          <Text size="xs" fw={700} c="dimmed" tt="uppercase" mb={6}>Dokumen Lain (SP/SPMK/FPP)</Text>
                           <Stack gap="xs">{otherFiles.map(renderFile)}</Stack>
                         </Box>
                       )}

@@ -238,7 +238,7 @@ export default function DetailTugas() {
                 )}
                 {otherFiles.length > 0 && (
                   <Box>
-                    <Text size="xs" fw={700} c="dimmed" tt="uppercase" mb={6}>Dokumen Lain</Text>
+                    <Text size="xs" fw={700} c="dimmed" tt="uppercase" mb={6}>Dokumen Lain (SP/SPMK/FPP)</Text>
                     <Stack gap="xs">{otherFiles.map(renderFile)}</Stack>
                   </Box>
                 )}
