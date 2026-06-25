@@ -26,9 +26,26 @@ const KANBAN_COLUMNS = [
   {
     id: 'list_pekerjaan',
     title: 'LIST PEKERJAAN',
-    // Semua pekerjaan berjalan: proses (putih) + sudah ada draft SN s/d TTD (oren)
-    statuses: ['proses', 'menunggu_izin', 'upload_diizinkan', 'draft_sn', 'draft_pra', 'assigned'],
+    statuses: ['proses', 'menunggu_izin', 'upload_diizinkan'],
+    borderColor: '#9CA3AF', // Gray 400
+  },
+  {
+    id: 'draft',
+    title: 'DRAFT',
+    statuses: ['draft_sn'],
     borderColor: '#FBBF24', // Amber 400
+  },
+  {
+    id: 'pra_ttd',
+    title: 'PRA TTD',
+    statuses: ['draft_pra'],
+    borderColor: '#60A5FA', // Blue 400
+  },
+  {
+    id: 'ttd',
+    title: 'TANDA TANGAN',
+    statuses: ['assigned'],
+    borderColor: '#A78BFA', // Purple 400
   },
   {
     id: 'selesai',
