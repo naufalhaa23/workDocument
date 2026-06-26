@@ -260,6 +260,9 @@ export default function PublicBoard() {
           transition: all 0.2s ease;
           cursor: pointer;
           position: relative;
+          overflow: hidden;
+          max-width: 100%;
+          word-break: break-word;
         }
         .kanban-card:hover {
           background-color: #F9FAFB;
@@ -405,13 +408,13 @@ export default function PublicBoard() {
                   const badge = STATUS_BADGE[doc.status] || { label: doc.status, bg: '#F3F4F6', color: '#374151' };
                   return (
                     <Box key={doc.id} className="kanban-card" style={{ backgroundColor: BUCKET_STYLE[bucketOf(doc.status)].bg, borderColor: BUCKET_STYLE[bucketOf(doc.status)].border }} onClick={() => openDocumentDetail(doc.id)}>
-                      <Text size="sm" fw={600} c="gray.9" lineClamp={2} mb={6}>{doc.title}</Text>
+                      <Text size="sm" fw={600} c="gray.9" lineClamp={2} mb={6} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{doc.title}</Text>
                       <Flex align="center" gap={8} wrap="nowrap">
                         <Group gap={4} wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
-                          <IconShip size={13} color="#9CA3AF" />
+                          <IconShip size={13} color="#9CA3AF" style={{ flexShrink: 0 }} />
                           <Text size="xs" c="gray.5" fw={500} truncate>{doc.nama_kapal || '-'}</Text>
                         </Group>
-                        <Group gap={4} wrap="nowrap">
+                        <Group gap={4} wrap="nowrap" style={{ flexShrink: 0 }}>
                           <IconCalendar size={13} color="#9CA3AF" />
                           <Text size="xs" c="gray.5" fw={500} style={{ whiteSpace: 'nowrap' }}>{dayjs(doc.document_date).format('DD MMM YYYY')}</Text>
                         </Group>
@@ -420,7 +423,7 @@ export default function PublicBoard() {
                           style={{
                             backgroundColor: badge.bg, color: badge.color,
                             fontSize: 9, fontWeight: 700, padding: '3px 6px',
-                            borderRadius: 5, textTransform: 'uppercase', whiteSpace: 'nowrap'
+                            borderRadius: 5, textTransform: 'uppercase', whiteSpace: 'nowrap', flexShrink: 0
                           }}
                         >
                           {badge.label}
@@ -465,17 +468,9 @@ export default function PublicBoard() {
                           const badge = STATUS_BADGE[doc.status] || { label: doc.status, bg: '#F3F4F6', color: '#374151' };
                           return (
                             <Box key={doc.id} className="kanban-card" style={{ backgroundColor: BUCKET_STYLE[bucketOf(doc.status)].bg, borderColor: BUCKET_STYLE[bucketOf(doc.status)].border }} onClick={() => openDocumentDetail(doc.id)}>
-                              <Text size="sm" fw={600} c="gray.9" lineClamp={2} mb={6}>{doc.title}</Text>
-                              <Flex align="center" gap={8} wrap="nowrap">
-                                <Group gap={4} wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
-                                  <IconShip size={13} color="#9CA3AF" />
-                                  <Text size="xs" c="gray.5" fw={500} truncate>{doc.nama_kapal || '-'}</Text>
-                                </Group>
-                                <Group gap={4} wrap="nowrap">
-                                  <IconCalendar size={13} color="#9CA3AF" />
-                                  <Text size="xs" c="gray.5" fw={500} style={{ whiteSpace: 'nowrap' }}>{dayjs(doc.document_date).format('DD MMM YYYY')}</Text>
-                                </Group>
-                                {column.id === 'list_pekerjaan' && (
+                              <Text size="sm" fw={600} c="gray.9" lineClamp={2} mb={6} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{doc.title}</Text>
+                              {column.id === 'list_pekerjaan' && (
+                                <Box mb={6}>
                                   <Text
                                     component="span"
                                     style={{
@@ -485,7 +480,17 @@ export default function PublicBoard() {
                                   >
                                     {badge.label}
                                   </Text>
-                                )}
+                                </Box>
+                              )}
+                              <Flex align="center" justify="space-between" gap={8} wrap="nowrap">
+                                <Group gap={4} wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
+                                  <IconShip size={13} color="#9CA3AF" style={{ flexShrink: 0 }} />
+                                  <Text size="xs" c="gray.5" fw={500} truncate>{doc.nama_kapal || '-'}</Text>
+                                </Group>
+                                <Group gap={4} wrap="nowrap" style={{ flexShrink: 0 }}>
+                                  <IconCalendar size={13} color="#9CA3AF" />
+                                  <Text size="xs" c="gray.5" fw={500} style={{ whiteSpace: 'nowrap' }}>{dayjs(doc.document_date).format('DD MMM YYYY')}</Text>
+                                </Group>
                               </Flex>
                             </Box>
                           );
