@@ -447,6 +447,7 @@ export default function ManajemenDokumen() {
                 <Select
                   label="Jenis Dokumen"
                   placeholder="Semua Jenis"
+                  comboboxProps={{ withinPortal: false }}
                   data={[
                     { value: 'SP', label: 'SP (Surat Perintah)' },
                     { value: 'SPMK', label: 'SPMK (Surat Perintah Mulai Kerja)' },
@@ -458,6 +459,7 @@ export default function ManajemenDokumen() {
                 <Select
                   label="Status"
                   placeholder="Semua Status"
+                  comboboxProps={{ withinPortal: false }}
                   data={Object.entries(STATUS_CONFIG).map(([k, v]) => ({ value: k, label: v.label }))}
                   value={filterStatus}
                   onChange={(v) => { setFilterStatus(v); setPage(1); }}
@@ -466,6 +468,7 @@ export default function ManajemenDokumen() {
                 <Select
                   label="Nama Kapal"
                   placeholder="Semua Kapal"
+                  comboboxProps={{ withinPortal: false }}
                   data={vesselOptions}
                   value={filterVessel}
                   onChange={(v) => { setFilterVessel(v); setPage(1); }}
