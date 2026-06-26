@@ -281,13 +281,13 @@ export default function PublicBoard() {
       `}</style>
 
       {/* ─── Premium Header Section ─── */}
-      <Container fluid px={24} pt={32} pb={20}>
-        <Flex justify="space-between" align="flex-start" mb="xl">
+      <Container fluid px={24} pt={isMobile ? 14 : 32} pb={isMobile ? 10 : 20}>
+        <Flex justify="space-between" align="flex-start" mb={isMobile ? 'sm' : 'xl'}>
           <Box pr="md">
-            <Title order={1} size="h3" fw={700} c="gray.9" style={{ letterSpacing: '-0.5px' }}>
+            <Title order={1} size={isMobile ? 'h4' : 'h3'} fw={700} c="gray.9" style={{ letterSpacing: '-0.5px' }}>
               Board — Status Dokumen
             </Title>
-            <Text c="dimmed" size="sm" mt={4}>
+            <Text c="dimmed" size={isMobile ? 'xs' : 'sm'} mt={isMobile ? 2 : 4}>
               Pantau alur dokumen pekerjaan secara real-time.
             </Text>
           </Box>
