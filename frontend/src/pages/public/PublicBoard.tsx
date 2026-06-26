@@ -31,9 +31,9 @@ const KANBAN_COLUMNS = [
   },
   {
     id: 'draft',
-    title: 'DRAFT',
+    title: 'DRAFT SN',
     statuses: ['draft_sn'],
-    borderColor: '#FBBF24', // Amber 400
+    borderColor: '#6D28D9', // Amber 400
   },
   {
     id: 'pra_ttd',
@@ -45,7 +45,7 @@ const KANBAN_COLUMNS = [
     id: 'ttd',
     title: 'TANDA TANGAN',
     statuses: ['assigned'],
-    borderColor: '#A78BFA', // Purple 400
+    borderColor: '#1D4ED8', // Purple 400
   },
   {
     id: 'selesai',
@@ -254,8 +254,8 @@ export default function PublicBoard() {
         .kanban-card {
           background-color: #ffffff;
           border: 1px solid #F3F4F6;
-          border-radius: 12px;
-          padding: 16px;
+          border-radius: 10px;
+          padding: 10px 12px;
           box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
           transition: all 0.2s ease;
           cursor: pointer;
@@ -394,7 +394,7 @@ export default function PublicBoard() {
             </ScrollArea>
             
             <ScrollArea.Autosize mah="calc(100vh - 220px)" type="auto" offsetScrollbars>
-            <Stack gap={12}>
+            <Stack gap={8}>
               {columnData[activeTab]?.length === 0 ? (
                 <Box className="empty-state">
                   <IconFileDescription size={24} color="#D1D5DB" style={{ marginBottom: 8 }} />
@@ -405,30 +405,26 @@ export default function PublicBoard() {
                   const badge = STATUS_BADGE[doc.status] || { label: doc.status, bg: '#F3F4F6', color: '#374151' };
                   return (
                     <Box key={doc.id} className="kanban-card" style={{ backgroundColor: BUCKET_STYLE[bucketOf(doc.status)].bg, borderColor: BUCKET_STYLE[bucketOf(doc.status)].border }} onClick={() => openDocumentDetail(doc.id)}>
-                      <Flex justify="space-between" align="flex-start" mb={8}>
-                        <Text size="sm" fw={600} c="gray.9" lineClamp={2}>{doc.title}</Text>
-                      </Flex>
-                      <Box mb={12}>
+                      <Text size="sm" fw={600} c="gray.9" lineClamp={2} mb={6}>{doc.title}</Text>
+                      <Flex align="center" gap={8} wrap="nowrap">
+                        <Group gap={4} wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
+                          <IconShip size={13} color="#9CA3AF" />
+                          <Text size="xs" c="gray.5" fw={500} truncate>{doc.nama_kapal || '-'}</Text>
+                        </Group>
+                        <Group gap={4} wrap="nowrap">
+                          <IconCalendar size={13} color="#9CA3AF" />
+                          <Text size="xs" c="gray.5" fw={500} style={{ whiteSpace: 'nowrap' }}>{dayjs(doc.document_date).format('DD MMM YYYY')}</Text>
+                        </Group>
                         <Text
                           component="span"
                           style={{
                             backgroundColor: badge.bg, color: badge.color,
-                            fontSize: 10, fontWeight: 700, padding: '4px 8px',
-                            borderRadius: 6, textTransform: 'uppercase'
+                            fontSize: 9, fontWeight: 700, padding: '3px 6px',
+                            borderRadius: 5, textTransform: 'uppercase', whiteSpace: 'nowrap'
                           }}
                         >
                           {badge.label}
                         </Text>
-                      </Box>
-                      <Flex align="center" justify="space-between" pt={12} style={{ borderTop: '1px solid #F3F4F6' }}>
-                        <Group gap={6} wrap="nowrap">
-                          <IconShip size={14} color="#9CA3AF" />
-                          <Text size="xs" c="gray.5" fw={500} truncate>{doc.nama_kapal || '-'}</Text>
-                        </Group>
-                        <Group gap={6} wrap="nowrap">
-                          <IconCalendar size={14} color="#9CA3AF" />
-                          <Text size="xs" c="gray.5" fw={500}>{dayjs(doc.document_date).format('DD MMM YYYY')}</Text>
-                        </Group>
                       </Flex>
                     </Box>
                   );
@@ -458,7 +454,7 @@ export default function PublicBoard() {
                       </Group>
                     </Flex>
                     <ScrollArea.Autosize mah="calc(100vh - 240px)" type="auto" offsetScrollbars>
-                    <Stack gap={12}>
+                    <Stack gap={8}>
                       {cards.length === 0 ? (
                         <Box className="empty-state">
                           <IconFileDescription size={24} color="#D1D5DB" style={{ marginBottom: 8 }} />
@@ -469,31 +465,27 @@ export default function PublicBoard() {
                           const badge = STATUS_BADGE[doc.status] || { label: doc.status, bg: '#F3F4F6', color: '#374151' };
                           return (
                             <Box key={doc.id} className="kanban-card" style={{ backgroundColor: BUCKET_STYLE[bucketOf(doc.status)].bg, borderColor: BUCKET_STYLE[bucketOf(doc.status)].border }} onClick={() => openDocumentDetail(doc.id)}>
-                              <Flex justify="space-between" align="flex-start" mb={12}>
-                                <Text size="sm" fw={600} c="gray.9" lineClamp={2}>{doc.title}</Text>
-                              </Flex>
-                              {column.id === 'list_pekerjaan' && (
-                                <Box mb={16}>
+                              <Text size="sm" fw={600} c="gray.9" lineClamp={2} mb={6}>{doc.title}</Text>
+                              <Flex align="center" gap={8} wrap="nowrap">
+                                <Group gap={4} wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
+                                  <IconShip size={13} color="#9CA3AF" />
+                                  <Text size="xs" c="gray.5" fw={500} truncate>{doc.nama_kapal || '-'}</Text>
+                                </Group>
+                                <Group gap={4} wrap="nowrap">
+                                  <IconCalendar size={13} color="#9CA3AF" />
+                                  <Text size="xs" c="gray.5" fw={500} style={{ whiteSpace: 'nowrap' }}>{dayjs(doc.document_date).format('DD MMM YYYY')}</Text>
+                                </Group>
+                                {column.id === 'list_pekerjaan' && (
                                   <Text
                                     component="span"
                                     style={{
-                                      backgroundColor: badge.bg, color: badge.color, fontSize: 10,
-                                      fontWeight: 700, padding: '4px 8px', borderRadius: 6, textTransform: 'uppercase'
+                                      backgroundColor: badge.bg, color: badge.color, fontSize: 9,
+                                      fontWeight: 700, padding: '3px 6px', borderRadius: 5, textTransform: 'uppercase', whiteSpace: 'nowrap'
                                     }}
                                   >
                                     {badge.label}
                                   </Text>
-                                </Box>
-                              )}
-                              <Flex align="center" justify="space-between" pt={12} style={{ borderTop: '1px solid #F3F4F6' }}>
-                                <Group gap={6} wrap="nowrap" style={{ maxWidth: '60%' }}>
-                                  <IconShip size={14} color="#9CA3AF" />
-                                  <Text size="xs" c="gray.5" fw={500} truncate>{doc.nama_kapal || '-'}</Text>
-                                </Group>
-                                <Group gap={6} wrap="nowrap">
-                                  <IconCalendar size={14} color="#9CA3AF" />
-                                  <Text size="xs" c="gray.5" fw={500}>{dayjs(doc.document_date).format('DD MMM YYYY')}</Text>
-                                </Group>
+                                )}
                               </Flex>
                             </Box>
                           );
