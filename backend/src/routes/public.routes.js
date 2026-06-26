@@ -45,7 +45,10 @@ router.get('/documents', checkBoardAccess, async (req, res, next) => {
         nama_kapal: true,
         document_date: true,
       },
-      orderBy: { created_at: 'desc' },
+      orderBy: [
+        { nama_kapal: { sort: 'asc', nulls: 'last' } }, // default: A–Z by vessel name
+        { document_date: 'desc' },                       // tiebreak: newest first within same vessel
+      ],
       take: 200 // Limit to 200 documents for performance on public view
     });
 
