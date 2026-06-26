@@ -94,7 +94,8 @@ export default function PublicBoard() {
 
   // Mobile layout state
   const isMobile = useMediaQuery('(max-width: 768px)');
-  const [activeTab, setActiveTab] = useState(KANBAN_COLUMNS[0].id);
+  // null = no status filter active → show ALL work across statuses
+  const [activeTab, setActiveTab] = useState<string | null>(null);
   const [filterOpened, setFilterOpened] = useState(false);
 
   // Detail Drawer state
@@ -215,6 +216,9 @@ export default function PublicBoard() {
     });
     return data;
   }, [documents]);
+
+  // Mobile: active tab filters to a status; no active tab → show all work
+  const mobileCards = activeTab ? (columnData[activeTab] || []) : documents;
 
   // View: Access Code Modal
   if (!isAuthorized) {
@@ -360,7 +364,7 @@ export default function PublicBoard() {
                   return (
                     <UnstyledButton
                       key={col.id}
-                      onClick={() => setActiveTab(col.id)}
+                      onClick={() => setActiveTab(prev => prev === col.id ? null : col.id)}
                       style={{
                         whiteSpace: 'nowrap',
                         padding: '6px 14px',
@@ -398,13 +402,13 @@ export default function PublicBoard() {
             
             <ScrollArea.Autosize mah="calc(100vh - 220px)" type="auto" offsetScrollbars>
             <Stack gap={8}>
-              {columnData[activeTab]?.length === 0 ? (
+              {mobileCards.length === 0 ? (
                 <Box className="empty-state">
                   <IconFileDescription size={24} color="#D1D5DB" style={{ marginBottom: 8 }} />
                   <Text size="xs" fw={500} c="gray.4">Belum ada dokumen</Text>
                 </Box>
               ) : (
-                columnData[activeTab]?.map(doc => {
+                mobileCards.map(doc => {
                   const badge = STATUS_BADGE[doc.status] || { label: doc.status, bg: '#F3F4F6', color: '#374151' };
                   return (
                     <Box key={doc.id} className="kanban-card" style={{ backgroundColor: BUCKET_STYLE[bucketOf(doc.status)].bg, borderColor: BUCKET_STYLE[bucketOf(doc.status)].border }} onClick={() => openDocumentDetail(doc.id)}>
