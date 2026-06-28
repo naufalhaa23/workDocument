@@ -423,16 +423,16 @@ export default function PublicBoard() {
                     <Box key={doc.id} className="kanban-card" style={cardStyle(doc)} onClick={() => openDocumentDetail(doc.id)}>
                       <Text size="sm" fw={600} c="gray.9" lineClamp={2} mb={6} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{doc.title}</Text>
                       {doc.deadline_sn && (
-                        <Text size="xs" fw={700} c="red" mb={6}>⏰ Deadline: {dayjs(doc.deadline_sn).format('DD MMM YYYY')}</Text>
+                        <Text size="xs" fw={700} c="red" mb={6}>Deadline: {dayjs(doc.deadline_sn).format('DD MMM YYYY')}</Text>
                       )}
                       <Flex align="center" gap={8} wrap="nowrap">
                         <Group gap={4} wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
-                          <IconShip size={13} color="#9CA3AF" style={{ flexShrink: 0 }} />
-                          <Text size="xs" c="gray.5" fw={500} truncate>{doc.nama_kapal || '-'}</Text>
+                          <IconShip size={13} color="#4B5563" style={{ flexShrink: 0 }} />
+                          <Text size="xs" c="gray.7" fw={600} truncate>{doc.nama_kapal || '-'}</Text>
                         </Group>
                         <Group gap={4} wrap="nowrap" style={{ flexShrink: 0 }}>
-                          <IconCalendar size={13} color="#9CA3AF" />
-                          <Text size="xs" c="gray.5" fw={500} style={{ whiteSpace: 'nowrap' }}>{dayjs(doc.document_date).format('DD MMM YYYY')}</Text>
+                          <IconCalendar size={13} color="#4B5563" />
+                          <Text size="xs" c="gray.7" fw={600} style={{ whiteSpace: 'nowrap' }}>{dayjs(doc.document_date).format('DD MMM YYYY')}</Text>
                         </Group>
                         <Text
                           component="span"
@@ -486,7 +486,7 @@ export default function PublicBoard() {
                             <Box key={doc.id} className="kanban-card" style={cardStyle(doc)} onClick={() => openDocumentDetail(doc.id)}>
                               <Text size="sm" fw={600} c="gray.9" lineClamp={2} mb={6} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{doc.title}</Text>
                               {doc.deadline_sn && (
-                                <Text size="xs" fw={700} c="red" mb={6}>⏰ Deadline: {dayjs(doc.deadline_sn).format('DD MMM YYYY')}</Text>
+                                <Text size="xs" fw={700} c="red" mb={6}>Deadline: {dayjs(doc.deadline_sn).format('DD MMM YYYY')}</Text>
                               )}
                               {column.id === 'list_pekerjaan' && (
                                 <Box mb={6}>
@@ -503,12 +503,12 @@ export default function PublicBoard() {
                               )}
                               <Flex align="center" justify="space-between" gap={8} wrap="nowrap">
                                 <Group gap={4} wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
-                                  <IconShip size={13} color="#9CA3AF" style={{ flexShrink: 0 }} />
-                                  <Text size="xs" c="gray.5" fw={500} truncate>{doc.nama_kapal || '-'}</Text>
+                                  <IconShip size={13} color="#4B5563" style={{ flexShrink: 0 }} />
+                                  <Text size="xs" c="gray.7" fw={600} truncate>{doc.nama_kapal || '-'}</Text>
                                 </Group>
                                 <Group gap={4} wrap="nowrap" style={{ flexShrink: 0 }}>
-                                  <IconCalendar size={13} color="#9CA3AF" />
-                                  <Text size="xs" c="gray.5" fw={500} style={{ whiteSpace: 'nowrap' }}>{dayjs(doc.document_date).format('DD MMM YYYY')}</Text>
+                                  <IconCalendar size={13} color="#4B5563" />
+                                  <Text size="xs" c="gray.7" fw={600} style={{ whiteSpace: 'nowrap' }}>{dayjs(doc.document_date).format('DD MMM YYYY')}</Text>
                                 </Group>
                               </Flex>
                             </Box>
@@ -563,7 +563,7 @@ export default function PublicBoard() {
             <Box>
               <Text size="xs" c="dimmed">Deadline SN</Text>
               <Text c={selectedDoc.deadline_sn ? 'red' : undefined} fw={selectedDoc.deadline_sn ? 600 : undefined}>
-                {selectedDoc.deadline_sn ? `⏰ ${dayjs(selectedDoc.deadline_sn).format('DD MMM YYYY')}` : '-'}
+                {selectedDoc.deadline_sn ? ` ${dayjs(selectedDoc.deadline_sn).format('DD MMM YYYY')}` : '-'}
               </Text>
             </Box>
 
