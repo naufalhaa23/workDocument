@@ -3,15 +3,15 @@ import {
   Box, Container, Title, Group, TextInput, Select, Text,
   Stack, Badge, ScrollArea, Center, Loader, Flex, Button,
   Modal, Drawer, Divider, Paper,
-  PasswordInput, UnstyledButton
+  PasswordInput, UnstyledButton, ActionIcon
 } from '@mantine/core';
-import { IconSearch, IconShip, IconCalendar, IconFileDescription, IconLogin, IconLock } from '@tabler/icons-react';
+import { IconSearch, IconShip, IconCalendar, IconFileDescription, IconLogin, IconLock, IconDownload } from '@tabler/icons-react';
 import { useDebouncedValue, useSessionStorage, useMediaQuery } from '@mantine/hooks';
 import dayjs from 'dayjs';
 import { Link } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import { api } from '../../lib/axios';
-import { getFileExt, isSnFile } from '../../lib/fileUtils';
+import { getFileExt, isSnFile, getFileUrl } from '../../lib/fileUtils';
 
 interface PublicDocument {
   id: number;
@@ -563,6 +563,17 @@ export default function PublicBoard() {
                         <Group gap={6} wrap="nowrap">
                           <Badge size="xs" variant="light" color="gray">{getFileExt(u)}</Badge>
                           <Badge size="xs">{(u.file_size / 1024 / 1024).toFixed(2)} MB</Badge>
+                          <ActionIcon
+                            component="a"
+                            href={getFileUrl(u.file_path)}
+                            download={u.file_name}
+                            variant="subtle"
+                            color="blue"
+                            size="sm"
+                            aria-label="Download file"
+                          >
+                            <IconDownload size={14} />
+                          </ActionIcon>
                         </Group>
                       </Group>
                     </Paper>

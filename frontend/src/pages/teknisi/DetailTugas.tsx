@@ -1,16 +1,16 @@
 import {
   Box, Title, Text, Paper, Group, Badge, Button, Stack,
-  ThemeIcon, Timeline, Card, Center, Loader,
+  ThemeIcon, Timeline, Card, Center, Loader, ActionIcon,
 } from '@mantine/core';
 import {
   IconArrowLeft, IconUpload, IconClock, IconCheck,
-  IconCalendar, IconUser, IconFile,
+  IconCalendar, IconUser, IconFile, IconDownload,
 } from '@tabler/icons-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { api } from '../../lib/axios';
 import { notifications } from '@mantine/notifications';
-import { getFileExt, isSnFile } from '../../lib/fileUtils';
+import { getFileExt, isSnFile, getFileUrl } from '../../lib/fileUtils';
 import dayjs from 'dayjs';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
@@ -219,6 +219,17 @@ export default function DetailTugas() {
                     <Badge size="xs" variant="light" color="blue">
                       {(f.file_size / 1024 / 1024).toFixed(2)} MB
                     </Badge>
+                    <ActionIcon
+                      component="a"
+                      href={getFileUrl(f.file_path)}
+                      download={f.file_name}
+                      variant="subtle"
+                      color="blue"
+                      size="sm"
+                      aria-label="Download file"
+                    >
+                      <IconDownload size={14} />
+                    </ActionIcon>
                   </Group>
                 </Group>
                 {f.notes && (

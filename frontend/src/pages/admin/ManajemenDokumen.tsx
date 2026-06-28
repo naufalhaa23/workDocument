@@ -18,7 +18,7 @@ import { api } from '../../lib/axios';
 import { notifications } from '@mantine/notifications';
 import { useDebouncedValue } from '@mantine/hooks';
 import { useSocketConnection } from '../../hooks/useSocket';
-import { getFileExt, isSnFile } from '../../lib/fileUtils';
+import { getFileExt, isSnFile, getFileUrl } from '../../lib/fileUtils';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   proses: { label: 'Proses', color: 'yellow' },
@@ -282,6 +282,17 @@ export default function ManajemenDokumen() {
         <Group gap="xs" wrap="nowrap">
           <Badge size="xs" variant="light" color="gray">{getFileExt(u)}</Badge>
           <Badge size="xs">{(u.file_size / 1024 / 1024).toFixed(2)} MB</Badge>
+          <ActionIcon
+            component="a"
+            href={getFileUrl(u.file_path)}
+            download={u.file_name}
+            variant="subtle"
+            color="blue"
+            size="sm"
+            aria-label="Download file"
+          >
+            <IconDownload size={14} />
+          </ActionIcon>
           <ActionIcon
             color="red"
             variant="subtle"

@@ -13,3 +13,9 @@ export const getFileExt = (u: { file_name?: string; file_type?: string }): strin
 
 // Detect "SN" documents from the file name (e.g. "SN 26 ...", "SN_26", "SN26")
 export const isSnFile = (name: string = ''): boolean => /(^|[\s_-])sn(?![a-z])/i.test(name);
+
+// Build the public URL to an uploaded file from its stored path
+export const getFileUrl = (filePath: string = ''): string => {
+  const base = import.meta.env.VITE_BASE_URL === '/' ? '' : (import.meta.env.VITE_BASE_URL || 'http://localhost:5000');
+  return `${base}/${filePath.replace(/\\/g, '/')}`;
+};
