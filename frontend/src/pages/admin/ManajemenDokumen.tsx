@@ -280,10 +280,8 @@ export default function ManajemenDokumen() {
           )}
         </Box>
         <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
-          <Stack gap={2} align="flex-end">
-            <Badge size="xs" variant="light" color="gray">{getFileExt(u)}</Badge>
-            <Badge size="xs">{(u.file_size / 1024 / 1024).toFixed(2)} MB</Badge>
-          </Stack>
+          <Badge size="xs" variant="light" color="gray">{getFileExt(u)}</Badge>
+          <Badge size="xs">{(u.file_size / 1024 / 1024).toFixed(2)} MB</Badge>
           <ActionIcon
             component="a"
             href={getFileUrl(u.file_path)}
