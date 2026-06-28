@@ -264,22 +264,22 @@ export default function ManajemenDokumen() {
 
   const renderUploadRow = (u: any) => (
     <Paper key={u.id} p="xs" withBorder>
-      <Group justify="space-between" wrap="nowrap">
-        <Box style={{ minWidth: 0 }}>
+      <Group justify="space-between" wrap="nowrap" gap="xs">
+        <Box style={{ flex: 1, minWidth: 0 }}>
           <a
-            href={`${import.meta.env.VITE_BASE_URL === '/' ? '' : (import.meta.env.VITE_BASE_URL || 'http://localhost:5000')}/${u.file_path?.replace(/\\/g, '/')}`}
+            href={getFileUrl(u.file_path)}
             target="_blank"
             rel="noopener noreferrer"
-            style={{ textDecoration: 'none', color: '#228be6', display: 'flex', alignItems: 'center', gap: 8 }}
+            style={{ textDecoration: 'none', color: '#228be6', display: 'block', minWidth: 0 }}
           >
-            <Text size="sm" fw={500} truncate style={{ maxWidth: 230 }}>{u.file_name}</Text>
+            <Text size="sm" fw={500} truncate>{u.file_name}</Text>
           </a>
           <Text size="xs" c="dimmed" mt={2}>Diunggah: {dayjs(u.uploaded_at).format('DD MMM YYYY, HH:mm')}</Text>
           {u.notes && (
             <Text size="xs" c="dark" mt={4}>📝 Catatan: {u.notes}</Text>
           )}
         </Box>
-        <Group gap="xs" wrap="nowrap">
+        <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
           <Badge size="xs" variant="light" color="gray">{getFileExt(u)}</Badge>
           <Badge size="xs">{(u.file_size / 1024 / 1024).toFixed(2)} MB</Badge>
           <ActionIcon

@@ -553,14 +553,14 @@ export default function PublicBoard() {
                 (() => {
                   const renderFile = (u: any, i: number) => (
                     <Paper key={i} p="xs" withBorder>
-                      <Group justify="space-between" wrap="nowrap">
-                        <Box style={{ minWidth: 0 }}>
-                          <a href={`${import.meta.env.VITE_BASE_URL === '/' ? '' : (import.meta.env.VITE_BASE_URL || 'http://localhost:5000')}/${u.file_path?.replace(/\\/g, '/')}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: '#228be6' }}>
-                            <Text size="sm" fw={500} truncate style={{ maxWidth: 200 }}>{u.file_name}</Text>
+                      <Group justify="space-between" wrap="nowrap" gap="xs">
+                        <Box style={{ flex: 1, minWidth: 0 }}>
+                          <a href={getFileUrl(u.file_path)} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: '#228be6', display: 'block', minWidth: 0 }}>
+                            <Text size="sm" fw={500} truncate>{u.file_name}</Text>
                           </a>
                           <Text size="xs" c="dimmed">{dayjs(u.uploaded_at).format('DD MMM YYYY HH:mm')}</Text>
                         </Box>
-                        <Group gap={6} wrap="nowrap">
+                        <Group gap={6} wrap="nowrap" style={{ flexShrink: 0 }}>
                           <Badge size="xs" variant="light" color="gray">{getFileExt(u)}</Badge>
                           <Badge size="xs">{(u.file_size / 1024 / 1024).toFixed(2)} MB</Badge>
                           <ActionIcon

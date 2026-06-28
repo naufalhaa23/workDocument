@@ -204,17 +204,17 @@ export default function DetailTugas() {
           {(() => {
             const renderFile = (f: any) => (
               <Card key={f.id} p="sm" radius="md" bg="gray.0">
-                <Group justify="space-between" wrap="nowrap">
+                <Group justify="space-between" wrap="nowrap" gap="xs">
                   <a
-                    href={`${import.meta.env.VITE_BASE_URL === '/' ? '' : (import.meta.env.VITE_BASE_URL || 'http://localhost:5000')}/${f.file_path?.replace(/\\/g, '/')}`}
+                    href={getFileUrl(f.file_path)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ textDecoration: 'none', color: '#228be6', display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}
+                    style={{ textDecoration: 'none', color: '#228be6', display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}
                   >
-                    <IconFile size={16} />
-                    <Text size="sm" truncate style={{ maxWidth: 180 }}>{f.file_name}</Text>
+                    <IconFile size={16} style={{ flexShrink: 0 }} />
+                    <Text size="sm" truncate style={{ flex: 1, minWidth: 0 }}>{f.file_name}</Text>
                   </a>
-                  <Group gap={6} wrap="nowrap">
+                  <Group gap={6} wrap="nowrap" style={{ flexShrink: 0 }}>
                     <Badge size="xs" variant="light" color="gray">{getFileExt(f)}</Badge>
                     <Badge size="xs" variant="light" color="blue">
                       {(f.file_size / 1024 / 1024).toFixed(2)} MB
