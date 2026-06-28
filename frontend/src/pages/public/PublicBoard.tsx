@@ -561,8 +561,10 @@ export default function PublicBoard() {
                           <Text size="xs" c="dimmed">{dayjs(u.uploaded_at).format('DD MMM YYYY HH:mm')}</Text>
                         </Box>
                         <Group gap={6} wrap="nowrap" style={{ flexShrink: 0 }}>
-                          <Badge size="xs" variant="light" color="gray">{getFileExt(u)}</Badge>
-                          <Badge size="xs">{(u.file_size / 1024 / 1024).toFixed(2)} MB</Badge>
+                          <Stack gap={2} align="flex-end">
+                            <Badge size="xs" variant="light" color="gray">{getFileExt(u)}</Badge>
+                            <Badge size="xs">{(u.file_size / 1024 / 1024).toFixed(2)} MB</Badge>
+                          </Stack>
                           <ActionIcon
                             component="a"
                             href={getFileUrl(u.file_path)}

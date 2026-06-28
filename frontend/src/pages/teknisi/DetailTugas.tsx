@@ -215,10 +215,12 @@ export default function DetailTugas() {
                     <Text size="sm" truncate style={{ flex: 1, minWidth: 0 }}>{f.file_name}</Text>
                   </a>
                   <Group gap={6} wrap="nowrap" style={{ flexShrink: 0 }}>
-                    <Badge size="xs" variant="light" color="gray">{getFileExt(f)}</Badge>
-                    <Badge size="xs" variant="light" color="blue">
-                      {(f.file_size / 1024 / 1024).toFixed(2)} MB
-                    </Badge>
+                    <Stack gap={2} align="flex-end">
+                      <Badge size="xs" variant="light" color="gray">{getFileExt(f)}</Badge>
+                      <Badge size="xs" variant="light" color="blue">
+                        {(f.file_size / 1024 / 1024).toFixed(2)} MB
+                      </Badge>
+                    </Stack>
                     <ActionIcon
                       component="a"
                       href={getFileUrl(f.file_path)}
