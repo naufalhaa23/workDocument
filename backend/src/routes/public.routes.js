@@ -44,6 +44,7 @@ router.get('/documents', checkBoardAccess, async (req, res, next) => {
         status: true,
         nama_kapal: true,
         document_date: true,
+        deadline_sn: true,
       },
       orderBy: [
         { nama_kapal: { sort: 'asc', nulls: 'last' } }, // default: A–Z by vessel name

@@ -20,6 +20,7 @@ interface PublicDocument {
   status: string;
   nama_kapal: string | null;
   document_date: string;
+  deadline_sn: string | null;
 }
 
 const KANBAN_COLUMNS = [
@@ -58,14 +59,22 @@ const KANBAN_COLUMNS = [
 // Card color bucket per workflow stage
 type Bucket = 'proses' | 'draft_sn' | 'selesai';
 const bucketOf = (status: string): Bucket => {
-  if (status === 'selesai') return 'selesai';
-  if (['draft_sn', 'draft_pra', 'assigned'].includes(status)) return 'draft_sn';
-  return 'proses'; // proses, menunggu_izin, upload_diizinkan
+  if (status === 'selesai' || status === 'assigned') return 'selesai'; // hijau (TTD & selesai)
+  if (['draft_sn', 'draft_pra'].includes(status)) return 'draft_sn';   // kuning/oren
+  return 'proses'; // putih: proses, menunggu_izin, upload_diizinkan
 };
 const BUCKET_STYLE: Record<Bucket, { bg: string; border: string }> = {
   proses: { bg: '#ffffff', border: '#E5E7EB' },     // belum ada draft SN → putih
   draft_sn: { bg: '#FEF3C7', border: '#FCD34D' },   // sudah draft SN, belum close → kuning/oren
   selesai: { bg: '#D1FAE5', border: '#6EE7B7' },    // close TTD → hijau
+};
+
+// Cards keep their status color; a deadline adds a red border accent (+ a red deadline label)
+const cardStyle = (doc: { status: string; deadline_sn?: string | null }) => {
+  const base = BUCKET_STYLE[bucketOf(doc.status)];
+  return doc.deadline_sn
+    ? { backgroundColor: base.bg, borderColor: '#EF4444', borderLeft: '4px solid #EF4444' }
+    : { backgroundColor: base.bg, borderColor: base.border };
 };
 
 const STATUS_BADGE: Record<string, { label: string; bg: string; color: string }> = {
@@ -411,8 +420,11 @@ export default function PublicBoard() {
                 mobileCards.map(doc => {
                   const badge = STATUS_BADGE[doc.status] || { label: doc.status, bg: '#F3F4F6', color: '#374151' };
                   return (
-                    <Box key={doc.id} className="kanban-card" style={{ backgroundColor: BUCKET_STYLE[bucketOf(doc.status)].bg, borderColor: BUCKET_STYLE[bucketOf(doc.status)].border }} onClick={() => openDocumentDetail(doc.id)}>
+                    <Box key={doc.id} className="kanban-card" style={cardStyle(doc)} onClick={() => openDocumentDetail(doc.id)}>
                       <Text size="sm" fw={600} c="gray.9" lineClamp={2} mb={6} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{doc.title}</Text>
+                      {doc.deadline_sn && (
+                        <Text size="xs" fw={700} c="red" mb={6}>⏰ Deadline: {dayjs(doc.deadline_sn).format('DD MMM YYYY')}</Text>
+                      )}
                       <Flex align="center" gap={8} wrap="nowrap">
                         <Group gap={4} wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
                           <IconShip size={13} color="#9CA3AF" style={{ flexShrink: 0 }} />
@@ -471,8 +483,11 @@ export default function PublicBoard() {
                         cards.map(doc => {
                           const badge = STATUS_BADGE[doc.status] || { label: doc.status, bg: '#F3F4F6', color: '#374151' };
                           return (
-                            <Box key={doc.id} className="kanban-card" style={{ backgroundColor: BUCKET_STYLE[bucketOf(doc.status)].bg, borderColor: BUCKET_STYLE[bucketOf(doc.status)].border }} onClick={() => openDocumentDetail(doc.id)}>
+                            <Box key={doc.id} className="kanban-card" style={cardStyle(doc)} onClick={() => openDocumentDetail(doc.id)}>
                               <Text size="sm" fw={600} c="gray.9" lineClamp={2} mb={6} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{doc.title}</Text>
+                              {doc.deadline_sn && (
+                                <Text size="xs" fw={700} c="red" mb={6}>⏰ Deadline: {dayjs(doc.deadline_sn).format('DD MMM YYYY')}</Text>
+                              )}
                               {column.id === 'list_pekerjaan' && (
                                 <Box mb={6}>
                                   <Text
@@ -545,7 +560,13 @@ export default function PublicBoard() {
               <Text size="xs" c="dimmed">Tanggal Dokumen</Text>
               <Text>{dayjs(selectedDoc.document_date).format('DD MMM YYYY')}</Text>
             </Box>
-            
+            <Box>
+              <Text size="xs" c="dimmed">Deadline SN</Text>
+              <Text c={selectedDoc.deadline_sn ? 'red' : undefined} fw={selectedDoc.deadline_sn ? 600 : undefined}>
+                {selectedDoc.deadline_sn ? `⏰ ${dayjs(selectedDoc.deadline_sn).format('DD MMM YYYY')}` : '-'}
+              </Text>
+            </Box>
+
             <Divider my="sm" />
             <Box>
               <Text fw={600} mb="xs">Evidences / Berkas</Text>
