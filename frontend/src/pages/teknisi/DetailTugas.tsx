@@ -216,8 +216,8 @@ export default function DetailTugas() {
                   </a>
                   <Group gap={6} wrap="nowrap" style={{ flexShrink: 0 }}>
                     <Stack gap={2} align="flex-end">
-                      <Badge size="xs" variant="light" color="gray">{getFileExt(f)}</Badge>
-                      <Badge size="xs" variant="light" color="blue">
+                      <Badge size="xs" variant="light" color="gray" w={64}>{getFileExt(f)}</Badge>
+                      <Badge size="xs" variant="light" color="blue" w={64}>
                         {(f.file_size / 1024 / 1024).toFixed(2)} MB
                       </Badge>
                     </Stack>

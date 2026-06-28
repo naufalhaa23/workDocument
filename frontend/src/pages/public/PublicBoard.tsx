@@ -563,8 +563,8 @@ export default function PublicBoard() {
                         <Group gap={6} wrap="nowrap" style={{ flexShrink: 0 }}>
                           {isMobile ? (
                             <Stack gap={2} align="flex-end">
-                              <Badge size="xs" variant="light" color="gray">{getFileExt(u)}</Badge>
-                              <Badge size="xs">{(u.file_size / 1024 / 1024).toFixed(2)} MB</Badge>
+                              <Badge size="xs" variant="light" color="gray" w={64}>{getFileExt(u)}</Badge>
+                              <Badge size="xs" w={64}>{(u.file_size / 1024 / 1024).toFixed(2)} MB</Badge>
                             </Stack>
                           ) : (
                             <>
